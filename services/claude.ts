@@ -1,7 +1,7 @@
 import { env, isConfigured, missingConfigMessage } from "@/lib/env";
 import type { ProductOption } from "@/types/travio";
 
-export const CLAUDE_MODEL = "claude-sonnet-4-20250514";
+export const CLAUDE_MODEL = env.claudeModel ?? "claude-sonnet-4-20250514";
 
 export const TRAVIO_SYSTEM_PROMPT =
   "You are Travio AI, a global shopping assistant. When user describes any product, find exactly 3 options from Alibaba, Amazon and Temu. Return ONLY this JSON: {products:[{name, price_per_unit, total_price, delivery_days, supplier, description, category}]}";
