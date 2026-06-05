@@ -1,8 +1,9 @@
-import { router } from "expo-router";
-import { useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { LoadingDots } from "@/components/LoadingDots";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ProductCard } from "@/components/ProductCard";
 import { Screen } from "@/components/Screen";
@@ -11,10 +12,15 @@ import { useApp } from "@/context/AppContext";
 import { searchTravioProducts } from "@/services/search";
 import type { ChatMessage, ProductOption } from "@/types/travio";
 
+const SEARCH_HISTORY_KEY = "travio.searchHistory";
+
 export default function AIChatScreen() {
   const { t } = useTranslation();
+  const params = useLocalSearchParams<{ q?: string }>();
   const { selectProduct } = useApp();
-  const [input, setInput] = useState("");
+  const initialQuery = typeof params.q === "string" ? params.q : "";
+  const ranInitialQuery = useRef(false);
+  const [input, setInput] = useState(initialQuery);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
@@ -25,9 +31,41 @@ export default function AIChatScreen() {
   ]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+  const [lastQuery, setLastQuery] = useState("");
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
-  async function handleSearch() {
-    const query = input.trim();
+  useEffect(() => {
+    AsyncStorage.getItem(SEARCH_HISTORY_KEY)
+      .then((raw) => setSearchHistory(raw ? (JSON.parse(raw) as string[]) : []))
+      .catch(() => setSearchHistory([]));
+  }, []);
+
+  useEffect(() => {
+    if (!initialQuery || ranInitialQuery.current) {
+      return;
+    }
+
+    ranInitialQuery.current = true;
+    void runSearch(initialQuery);
+  }, [initialQuery]);
+
+  function rememberSearch(query: string) {
+    setSearchHistory((current) => {
+      const next = [query, ...current.filter((item) => item.toLowerCase() !== query.toLowerCase())].slice(0, 6);
+      AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next)).catch(() => undefined);
+      return next;
+    });
+  }
+
+  function normalizeErrors(nextErrors: string[]) {
+    const offline = nextErrors.some((message) => /network|fetch|offline/i.test(message));
+    return offline
+      ? ["You appear to be offline. Check your internet connection and retry.", ...nextErrors]
+      : nextErrors;
+  }
+
+  async function runSearch(rawQuery: string) {
+    const query = rawQuery.trim();
     if (!query) {
       return;
     }
@@ -35,6 +73,8 @@ export default function AIChatScreen() {
     setInput("");
     setLoading(true);
     setErrors([]);
+    setLastQuery(query);
+    rememberSearch(query);
     setMessages((current) => [
       ...current,
       {
@@ -47,7 +87,7 @@ export default function AIChatScreen() {
 
     try {
       const result = await searchTravioProducts(query);
-      setErrors(result.errors);
+      setErrors(normalizeErrors(result.errors));
       setMessages((current) => [
         ...current,
         {
@@ -59,10 +99,16 @@ export default function AIChatScreen() {
         }
       ]);
     } catch (error) {
-      Alert.alert(t("chat"), error instanceof Error ? error.message : "Search failed.");
+      const message = error instanceof Error ? error.message : "Search failed.";
+      setErrors(normalizeErrors([message]));
+      Alert.alert(t("chat"), message);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSearch() {
+    await runSearch(input);
   }
 
   function confirm(product: ProductOption) {
@@ -72,7 +118,6 @@ export default function AIChatScreen() {
 
   return (
     <Screen>
-      <LoadingOverlay visible={loading} message={t("searching")} />
       <Text style={styles.title}>{t("chat")}</Text>
       {messages.map((message) => (
         <View key={message.id} style={[styles.message, message.role === "user" ? styles.userMessage : styles.aiMessage]}>
@@ -84,14 +129,38 @@ export default function AIChatScreen() {
         </View>
       ))}
 
+      {loading ? (
+        <View style={[styles.message, styles.aiMessage]}>
+          <Text style={styles.messageRole}>Travio AI</Text>
+          <View style={styles.loadingRow}>
+            <Text style={styles.messageText}>{t("searching")}</Text>
+            <LoadingDots />
+          </View>
+        </View>
+      ) : null}
+
       {errors.length > 0 ? (
         <View style={styles.errorBox}>
-          <Text style={styles.errorTitle}>API setup notes</Text>
+          <Text style={styles.errorTitle}>Search issue</Text>
           {errors.map((error) => (
             <Text key={error} style={styles.errorText}>
               - {error}
             </Text>
           ))}
+          {lastQuery ? <PrimaryButton title="Retry search" variant="secondary" onPress={() => runSearch(lastQuery)} /> : null}
+        </View>
+      ) : null}
+
+      {searchHistory.length > 0 ? (
+        <View style={styles.historyBox}>
+          <Text style={styles.errorTitle}>Search history</Text>
+          <View style={styles.historyRow}>
+            {searchHistory.map((item) => (
+              <Pressable key={item} style={styles.historyPill} onPress={() => runSearch(item)}>
+                <Text style={styles.historyText}>{item}</Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
       ) : null}
 
@@ -153,6 +222,35 @@ const styles = StyleSheet.create({
   errorText: {
     color: "#ffc7c7",
     lineHeight: 20
+  },
+  loadingRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10
+  },
+  historyBox: {
+    backgroundColor: "#101827",
+    borderColor: "#24304a",
+    borderRadius: 18,
+    borderWidth: 1,
+    gap: 10,
+    padding: 14
+  },
+  historyRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8
+  },
+  historyPill: {
+    backgroundColor: "#182033",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  historyText: {
+    color: "#d7deee",
+    fontWeight: "700"
   },
   inputRow: {
     gap: 12

@@ -31,6 +31,10 @@ export default function ProfileScreen() {
       <View style={styles.card}>
         <Text style={styles.name}>{user?.name ?? "Guest"}</Text>
         <Text style={styles.email}>{user?.email ?? "guest@travio.local"}</Text>
+        {user?.phone ? <Text style={styles.email}>{user.phone}</Text> : null}
+        {user?.agreement_accepted_at ? (
+          <Text style={styles.meta}>Agreement accepted: {new Date(user.agreement_accepted_at).toLocaleString()}</Text>
+        ) : null}
       </View>
 
       <View style={styles.card}>
@@ -55,6 +59,16 @@ export default function ProfileScreen() {
         <Text style={styles.statusText}>
           Add real values to .env to enable Claude, marketplace APIs, Stripe PaymentIntent, and Supabase database writes.
         </Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Legal</Text>
+        <Pressable onPress={() => router.push("/terms-conditions")}>
+          <Text style={styles.link}>Terms and Conditions</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push("/privacy-policy")}>
+          <Text style={styles.link}>Privacy Policy</Text>
+        </Pressable>
       </View>
 
       <PrimaryButton title={t("logout")} variant="secondary" onPress={handleLogout} />
@@ -83,6 +97,10 @@ const styles = StyleSheet.create({
   },
   email: {
     color: "#9aa7bd"
+  },
+  meta: {
+    color: "#c5ccdc",
+    fontSize: 13
   },
   sectionTitle: {
     color: "#fff",
@@ -115,5 +133,10 @@ const styles = StyleSheet.create({
   statusText: {
     color: "#c5ccdc",
     lineHeight: 22
+  },
+  link: {
+    color: "#21d4a2",
+    fontSize: 16,
+    fontWeight: "800"
   }
 });

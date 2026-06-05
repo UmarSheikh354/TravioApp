@@ -1,19 +1,24 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ScrollView, StyleSheet, View, type ViewStyle } from "react-native";
+import { ScrollView, StyleSheet, View, type ScrollViewProps, type ViewStyle } from "react-native";
 import type { PropsWithChildren } from "react";
 
 type Props = PropsWithChildren<{
   scroll?: boolean;
+  refreshControl?: ScrollViewProps["refreshControl"];
   style?: ViewStyle;
 }>;
 
-export function Screen({ children, scroll = true, style }: Props) {
+export function Screen({ children, scroll = true, refreshControl, style }: Props) {
   const content = <View style={[styles.content, style]}>{children}</View>;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       {scroll ? (
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={refreshControl}
+        >
           {content}
         </ScrollView>
       ) : (

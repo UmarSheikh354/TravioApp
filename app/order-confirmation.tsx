@@ -27,7 +27,7 @@ export default function OrderConfirmationScreen() {
 
   const total = useMemo(() => {
     const count = Math.max(1, Number(quantity) || 1);
-    return selectedProduct ? selectedProduct.total_price * count : 0;
+    return selectedProduct ? selectedProduct.price_per_unit * count : 0;
   }, [quantity, selectedProduct]);
 
   function submit() {

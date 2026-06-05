@@ -31,7 +31,7 @@ export default function PaymentScreen() {
       await pay(orderDraft);
       const order = await completeOrder(orderDraft);
       await notifyOrderUpdate(order);
-      router.replace({ pathname: "/order-success", params: { tracking: order.tracking_number } });
+      router.replace({ pathname: "/order-success", params: { orderId: order.id, tracking: order.tracking_number } });
     } catch (error) {
       Alert.alert(t("payment"), error instanceof Error ? error.message : "Payment failed.");
     } finally {
@@ -44,7 +44,7 @@ export default function PaymentScreen() {
   }
 
   const isLiveStripe = isConfigured(env.stripePublishableKey) && isConfigured(env.paymentIntentEndpoint);
-  const total = orderDraft.product.total_price * orderDraft.quantity;
+  const total = orderDraft.product.price_per_unit * orderDraft.quantity;
 
   return (
     <Screen style={styles.screen}>

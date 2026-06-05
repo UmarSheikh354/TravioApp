@@ -20,6 +20,7 @@ function fallbackProducts(query: string, existing: ProductOption[]): ProductOpti
         supplier,
         description:
           "Demo product generated while API credentials are placeholders. Add real keys in .env for live search results.",
+        category: "General",
         availability: "Demo"
       });
     }

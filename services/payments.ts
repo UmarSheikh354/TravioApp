@@ -22,7 +22,7 @@ export function useTravioPayments() {
         "content-type": "application/json"
       },
       body: JSON.stringify({
-        amount: Math.round(draft.product.total_price * draft.quantity * 100),
+        amount: Math.round(draft.product.price_per_unit * draft.quantity * 100),
         currency: "usd",
         product: draft.product,
         customer: {

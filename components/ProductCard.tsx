@@ -19,6 +19,7 @@ export function ProductCard({ product, onConfirm }: Props) {
         <Text style={styles.price}>${product.total_price.toFixed(2)}</Text>
       </View>
       <Text style={styles.description}>{product.description}</Text>
+      {product.category ? <Text style={styles.meta}>Category: {product.category}</Text> : null}
       <View style={styles.metaRow}>
         <Text style={styles.meta}>
           {t("supplier")}: {product.supplier}

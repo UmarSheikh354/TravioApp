@@ -9,7 +9,7 @@ import { useApp } from "@/context/AppContext";
 
 export default function EmailVerificationScreen() {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ email?: string }>();
+  const params = useLocalSearchParams<{ email?: string; agreementAcceptedAt?: string }>();
   const { verifyEmail } = useApp();
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function EmailVerificationScreen() {
   async function handleVerify() {
     try {
       setLoading(true);
-      await verifyEmail(email, token || "000000");
+      await verifyEmail(email, token || "000000", params.agreementAcceptedAt ?? new Date().toISOString());
       router.replace("/(tabs)");
     } catch (error) {
       Alert.alert(t("verification"), error instanceof Error ? error.message : "Verification failed.");

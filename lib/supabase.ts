@@ -25,11 +25,12 @@ function makeTrackingNumber() {
   return `TRV-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 }
 
-export function makeLocalUser(email: string, name = "Travio User"): TravioUser {
+export function makeLocalUser(email: string, name = "Travio User", agreementAcceptedAt?: string): TravioUser {
   return {
     id: `local-${email.toLowerCase()}`,
     name,
     email,
+    agreement_accepted_at: agreementAcceptedAt,
     created_at: new Date().toISOString()
   };
 }
@@ -58,6 +59,8 @@ export async function upsertUserProfile(user: TravioUser) {
     name: user.name,
     email: user.email,
     phone: user.phone,
+    ...(user.address ? { address: user.address } : {}),
+    ...(user.agreement_accepted_at ? { agreement_accepted_at: user.agreement_accepted_at } : {}),
     created_at: user.created_at
   });
 
@@ -74,10 +77,13 @@ export async function saveOrder(userId: string, draft: OrderDraft): Promise<Trav
     user_id: userId,
     product_name: draft.product.name,
     quantity: draft.quantity,
-    price: draft.product.total_price * draft.quantity,
+    price_per_unit: draft.product.price_per_unit,
+    total_price: draft.product.price_per_unit * draft.quantity,
     supplier: draft.product.supplier,
-    address: `${draft.address}, ${draft.city}, ${draft.country}`,
-    status: "paid",
+    delivery_address: draft.address,
+    city: draft.city,
+    country: draft.country,
+    status: "processing",
     created_at: new Date().toISOString(),
     tracking_number: makeTrackingNumber()
   };
@@ -95,10 +101,14 @@ export async function saveOrder(userId: string, draft: OrderDraft): Promise<Trav
       user_id: order.user_id,
       product_name: order.product_name,
       quantity: order.quantity,
-      price: order.price,
+      price_per_unit: order.price_per_unit,
+      total_price: order.total_price,
       supplier: order.supplier,
-      address: order.address,
+      delivery_address: order.delivery_address,
+      city: order.city,
+      country: order.country,
       status: order.status,
+      tracking_number: order.tracking_number,
       created_at: order.created_at
     })
     .select()
@@ -137,9 +147,12 @@ export async function getOrders(userId: string): Promise<TravioOrder[]> {
     user_id: order.user_id,
     product_name: order.product_name,
     quantity: order.quantity,
-    price: Number(order.price),
+    price_per_unit: Number(order.price_per_unit),
+    total_price: Number(order.total_price),
     supplier: order.supplier,
-    address: order.address,
+    delivery_address: order.delivery_address,
+    city: order.city,
+    country: order.country,
     status: order.status,
     created_at: order.created_at,
     tracking_number: order.tracking_number ?? makeTrackingNumber()

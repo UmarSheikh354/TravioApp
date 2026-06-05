@@ -1,6 +1,13 @@
 import { env, isConfigured, missingConfigMessage } from "@/lib/env";
 import type { ApiResult, ProductOption } from "@/types/travio";
 
+type AmazonPaapiClient = {
+  SearchItemsV2: (
+    commonParameters: Record<string, string>,
+    requestParameters: Record<string, string | number | string[]>
+  ) => Promise<Record<string, unknown>>;
+};
+
 function numericPrice(value: unknown, fallback: number) {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -34,13 +41,14 @@ function optionFromRaw(raw: Record<string, unknown>, supplier: ProductOption["su
     delivery_days: deliveryDays,
     supplier,
     description: String(raw.description ?? raw.product_detail_url ?? `Matched ${query} on ${supplier}.`),
+    category: String(raw.category ?? "General"),
     image_url: (raw.product_main_image_url as string) ?? (raw.image as string) ?? (raw.image_url as string),
     availability: (raw.availability as string) ?? "Available"
   };
 }
 
 export async function searchAliExpress(query: string): Promise<ApiResult<ProductOption>> {
-  if (!isConfigured(env.aliexpressAppKey) || !isConfigured(env.aliexpressTrackingId)) {
+  if (!isConfigured(env.aliexpressAppKey) || !isConfigured(env.aliexpressAppSecret)) {
     return { error: missingConfigMessage("AliExpress affiliate API") };
   }
 
@@ -48,7 +56,7 @@ export async function searchAliExpress(query: string): Promise<ApiResult<Product
     method: "aliexpress.affiliate.product.query",
     app_key: env.aliexpressAppKey!,
     keywords: query,
-    tracking_id: env.aliexpressTrackingId!,
+    tracking_id: env.aliexpressTrackingId ?? env.aliexpressAppKey!,
     target_currency: "USD",
     target_language: "EN",
     ship_to_country: "US",
@@ -56,7 +64,7 @@ export async function searchAliExpress(query: string): Promise<ApiResult<Product
     timestamp: new Date().toISOString()
   });
 
-  const response = await fetch(`https://api-sg.aliexpress.com/sync?${params.toString()}`);
+  const response = await fetch(`https://api.aliexpress.com/sync?${params.toString()}`);
   if (!response.ok) {
     return { error: `AliExpress API failed with ${response.status}.` };
   }
@@ -77,45 +85,50 @@ export async function searchAmazon(query: string): Promise<ApiResult<ProductOpti
   if (
     !isConfigured(env.amazonAccessKey) ||
     !isConfigured(env.amazonSecretKey) ||
-    !isConfigured(env.amazonAssociateTag)
+    !isConfigured(env.amazonPartnerTag)
   ) {
     return { error: missingConfigMessage("Amazon Product Advertising API") };
   }
 
-  const response = await fetch("https://webservices.amazon.com/paapi5/searchitems", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-amz-target": "com.amazon.paapi5.v1.ProductAdvertisingAPIv1.SearchItems"
-    },
-    body: JSON.stringify({
-      Keywords: query,
-      PartnerTag: env.amazonAssociateTag,
+  const amazonPaapi = require("amazon-paapi") as AmazonPaapiClient;
+  const json = await amazonPaapi.SearchItemsV2(
+    {
+      AccessKey: env.amazonAccessKey!,
+      SecretKey: env.amazonSecretKey!,
+      PartnerTag: env.amazonPartnerTag!,
       PartnerType: "Associates",
-      Marketplace: "www.amazon.com",
-      Resources: ["Images.Primary.Medium", "ItemInfo.Title", "Offers.Listings.Price"]
-    })
-  });
+      Marketplace: "www.amazon.com"
+    },
+    {
+      Keywords: query,
+      SearchIndex: "All",
+      ItemCount: 1,
+      Resources: ["Images.Primary.Medium", "ItemInfo.Title", "OffersV2.Listings.Price", "Offers.Listings.Price"]
+    }
+  );
 
-  if (!response.ok) {
-    return { error: `Amazon Product Advertising API failed with ${response.status}.` };
-  }
-
-  const json = await response.json();
-  const item = json?.SearchResult?.Items?.[0];
-  if (!item) {
+  const item = (json?.SearchResult as Record<string, unknown> | undefined)?.Items as
+    | Array<Record<string, unknown>>
+    | undefined;
+  const firstItem = item?.[0];
+  if (!firstItem) {
     return { error: "Amazon returned no matching products." };
   }
+
+  const itemInfo = firstItem.ItemInfo as Record<string, Record<string, string>> | undefined;
+  const images = firstItem.Images as Record<string, Record<string, Record<string, string>>> | undefined;
+  const offers = firstItem.Offers as Record<string, Array<Record<string, Record<string, number>>>> | undefined;
+  const offersV2 = firstItem.OffersV2 as Record<string, Array<Record<string, Record<string, number>>>> | undefined;
 
   return {
     data: optionFromRaw(
       {
-        asin: item.ASIN,
-        title: item.ItemInfo?.Title?.DisplayValue,
-        price: item.Offers?.Listings?.[0]?.Price?.Amount,
-        image: item.Images?.Primary?.Medium?.URL,
+        asin: firstItem.ASIN,
+        title: itemInfo?.Title?.DisplayValue,
+        price: offersV2?.Listings?.[0]?.Price?.Money?.Amount ?? offers?.Listings?.[0]?.Price?.Amount,
+        image: images?.Primary?.Medium?.URL,
         delivery_days: 7,
-        description: item.DetailPageURL
+        description: firstItem.DetailPageURL
       },
       "Amazon",
       query
