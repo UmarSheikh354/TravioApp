@@ -1,0 +1,21 @@
+/// <reference types="expo/types" />
+
+declare namespace NodeJS {
+  interface ProcessEnv {
+    EXPO_PUBLIC_SUPABASE_URL?: string;
+    EXPO_PUBLIC_SUPABASE_ANON_KEY?: string;
+    EXPO_PUBLIC_CLAUDE_API_KEY?: string;
+    EXPO_PUBLIC_ALIEXPRESS_APP_KEY?: string;
+    EXPO_PUBLIC_ALIEXPRESS_APP_SECRET?: string;
+    EXPO_PUBLIC_ALIEXPRESS_TRACKING_ID?: string;
+    EXPO_PUBLIC_AMAZON_ACCESS_KEY?: string;
+    EXPO_PUBLIC_AMAZON_SECRET_KEY?: string;
+    EXPO_PUBLIC_AMAZON_ASSOCIATE_TAG?: string;
+    EXPO_PUBLIC_AMAZON_REGION?: string;
+    EXPO_PUBLIC_TEMU_RAPIDAPI_KEY?: string;
+    EXPO_PUBLIC_TEMU_RAPIDAPI_HOST?: string;
+    EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY?: string;
+    EXPO_PUBLIC_STRIPE_MERCHANT_ID?: string;
+    EXPO_PUBLIC_PAYMENT_INTENT_ENDPOINT?: string;
+  }
+}

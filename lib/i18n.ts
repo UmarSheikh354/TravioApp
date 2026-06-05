@@ -1,0 +1,160 @@
+import * as Localization from "expo-localization";
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import type { SupportedLanguage } from "@/types/travio";
+
+const resources = {
+  en: {
+    translation: {
+      appName: "Travio",
+      splashTagline: "AI shopping companion",
+      getStarted: "Get started",
+      next: "Next",
+      skip: "Skip",
+      login: "Login",
+      continueWithApple: "Continue with Apple",
+      continueWithGoogle: "Continue with Google",
+      continueWithEmail: "Continue with Email",
+      email: "Email",
+      verification: "Email Verification",
+      verificationHint: "Enter the verification code sent to your email.",
+      verify: "Verify",
+      home: "Home",
+      chat: "AI Chat",
+      orders: "Orders",
+      profile: "Profile",
+      startChat: "Start shopping with AI",
+      chatPlaceholder: "Describe the product you want...",
+      search: "Search",
+      searching: "Travio AI is searching Alibaba, Amazon and Temu...",
+      confirmOrder: "Confirm Order",
+      orderForm: "Order Confirmation",
+      name: "Name",
+      phone: "Phone",
+      address: "Address",
+      city: "City",
+      country: "Country",
+      quantity: "Quantity",
+      continueToPayment: "Continue to Payment",
+      payment: "Payment",
+      payNow: "Pay Now",
+      orderSuccess: "Order Success",
+      trackingNumber: "Tracking number",
+      backHome: "Back Home",
+      noOrders: "No orders yet.",
+      language: "Language",
+      logout: "Logout",
+      status: "Status",
+      supplier: "Supplier",
+      delivery: "Delivery",
+      days: "days"
+    }
+  },
+  ur: {
+    translation: {
+      appName: "ٹریویو",
+      splashTagline: "اے آئی شاپنگ ساتھی",
+      getStarted: "شروع کریں",
+      next: "اگلا",
+      skip: "چھوڑیں",
+      login: "لاگ ان",
+      continueWithApple: "ایپل سے جاری رکھیں",
+      continueWithGoogle: "گوگل سے جاری رکھیں",
+      continueWithEmail: "ای میل سے جاری رکھیں",
+      email: "ای میل",
+      verification: "ای میل تصدیق",
+      verificationHint: "اپنی ای میل پر بھیجا گیا کوڈ درج کریں۔",
+      verify: "تصدیق کریں",
+      home: "ہوم",
+      chat: "اے آئی چیٹ",
+      orders: "آرڈرز",
+      profile: "پروفائل",
+      startChat: "اے آئی کے ساتھ خریداری شروع کریں",
+      chatPlaceholder: "جس پروڈکٹ کی ضرورت ہے اسے بیان کریں...",
+      search: "تلاش",
+      searching: "ٹریویو اے آئی علی بابا، ایمیزون اور ٹیمو پر تلاش کر رہا ہے...",
+      confirmOrder: "آرڈر کنفرم کریں",
+      orderForm: "آرڈر تصدیق",
+      name: "نام",
+      phone: "فون",
+      address: "پتہ",
+      city: "شہر",
+      country: "ملک",
+      quantity: "تعداد",
+      continueToPayment: "ادائیگی پر جائیں",
+      payment: "ادائیگی",
+      payNow: "ابھی ادائیگی کریں",
+      orderSuccess: "آرڈر کامیاب",
+      trackingNumber: "ٹریکنگ نمبر",
+      backHome: "ہوم پر واپس",
+      noOrders: "ابھی کوئی آرڈر نہیں۔",
+      language: "زبان",
+      logout: "لاگ آؤٹ",
+      status: "حالت",
+      supplier: "سپلائر",
+      delivery: "ڈیلیوری",
+      days: "دن"
+    }
+  },
+  ar: {
+    translation: {
+      appName: "ترافيو",
+      splashTagline: "رفيق تسوق بالذكاء الاصطناعي",
+      getStarted: "ابدأ",
+      next: "التالي",
+      skip: "تخطي",
+      login: "تسجيل الدخول",
+      continueWithApple: "المتابعة عبر Apple",
+      continueWithGoogle: "المتابعة عبر Google",
+      continueWithEmail: "المتابعة عبر البريد",
+      email: "البريد الإلكتروني",
+      verification: "تأكيد البريد",
+      verificationHint: "أدخل رمز التأكيد المرسل إلى بريدك.",
+      verify: "تأكيد",
+      home: "الرئيسية",
+      chat: "محادثة الذكاء الاصطناعي",
+      orders: "الطلبات",
+      profile: "الملف الشخصي",
+      startChat: "ابدأ التسوق بالذكاء الاصطناعي",
+      chatPlaceholder: "صف المنتج الذي تريده...",
+      search: "بحث",
+      searching: "ترافيو يبحث في علي بابا وأمازون وتيمو...",
+      confirmOrder: "تأكيد الطلب",
+      orderForm: "تأكيد الطلب",
+      name: "الاسم",
+      phone: "الهاتف",
+      address: "العنوان",
+      city: "المدينة",
+      country: "الدولة",
+      quantity: "الكمية",
+      continueToPayment: "المتابعة للدفع",
+      payment: "الدفع",
+      payNow: "ادفع الآن",
+      orderSuccess: "تم الطلب بنجاح",
+      trackingNumber: "رقم التتبع",
+      backHome: "العودة للرئيسية",
+      noOrders: "لا توجد طلبات بعد.",
+      language: "اللغة",
+      logout: "تسجيل الخروج",
+      status: "الحالة",
+      supplier: "المورد",
+      delivery: "التوصيل",
+      days: "أيام"
+    }
+  }
+};
+
+const deviceLanguage = (Localization.getLocales()[0]?.languageCode ?? "en") as SupportedLanguage;
+const initialLanguage: SupportedLanguage = ["en", "ur", "ar"].includes(deviceLanguage) ? deviceLanguage : "en";
+
+i18n.use(initReactI18next).init({
+  resources,
+  lng: initialLanguage,
+  fallbackLng: "en",
+  interpolation: {
+    escapeValue: false
+  },
+  compatibilityJSON: "v4"
+});
+
+export default i18n;
