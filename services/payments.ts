@@ -1,5 +1,5 @@
-import { useStripe } from "@stripe/stripe-react-native";
 import { env, isConfigured, missingConfigMessage } from "@/lib/env";
+import { isExpoGo } from "@/lib/runtime";
 import type { OrderDraft } from "@/types/travio";
 
 type PaymentIntentResponse = {
@@ -8,9 +8,12 @@ type PaymentIntentResponse = {
   customer?: string;
 };
 
-export function useTravioPayments() {
-  const stripe = useStripe();
+type StripePaymentFunctions = {
+  initPaymentSheet: (params: Record<string, unknown>) => Promise<{ error?: { message: string } }>;
+  presentPaymentSheet: () => Promise<{ error?: { message: string } }>;
+};
 
+export function useTravioPayments() {
   async function createPaymentIntent(draft: OrderDraft): Promise<PaymentIntentResponse> {
     if (!isConfigured(env.paymentIntentEndpoint)) {
       throw new Error(missingConfigMessage("Stripe PaymentIntent endpoint"));
@@ -43,11 +46,13 @@ export function useTravioPayments() {
   }
 
   async function pay(draft: OrderDraft) {
-    if (!isConfigured(env.stripePublishableKey) || !isConfigured(env.paymentIntentEndpoint)) {
+    if (isExpoGo() || !isConfigured(env.stripePublishableKey) || !isConfigured(env.paymentIntentEndpoint)) {
       await new Promise((resolve) => setTimeout(resolve, 900));
       return { demo: true };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const stripe = require("@stripe/stripe-react-native") as StripePaymentFunctions;
     const intent = await createPaymentIntent(draft);
     const init = await stripe.initPaymentSheet({
       merchantDisplayName: "Travio",
