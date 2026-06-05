@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Travio",
+    "slug": "travio",
+    "scheme": "travio",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#05070d"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.travio.app",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Travio does not use the camera yet.",
+        "NSLocationWhenInUseUsageDescription": "Travio may use location later to improve delivery estimates."
+      }
+    },
+    "android": {
+      "package": "com.travio.app",
+      "permissions": [
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-localization",
+      "expo-web-browser",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.travio.app",
+          "enableGooglePay": true
+        }
+      ]
+    ]
+  }
+}
