@@ -1,20 +1,15 @@
-import "react-native-gesture-handler";
 import "react-native-get-random-values";
 import "@/lib/i18n";
 
-import { StripeProvider } from "@stripe/stripe-react-native";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { TravioStripeProvider } from "@/components/TravioStripeProvider";
 import { AppProvider } from "@/context/AppContext";
-import { env } from "@/lib/env";
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StripeProvider
-        publishableKey={env.stripePublishableKey ?? "pk_test_placeholder"}
-        merchantIdentifier={env.stripeMerchantId ?? "merchant.com.travio.app"}
-      >
+      <TravioStripeProvider>
         <AppProvider>
           <Stack
             screenOptions={{
@@ -34,7 +29,7 @@ export default function RootLayout() {
             <Stack.Screen name="order-success" options={{ title: "Order Success", headerBackVisible: false }} />
           </Stack>
         </AppProvider>
-      </StripeProvider>
+      </TravioStripeProvider>
     </GestureHandlerRootView>
   );
 }
