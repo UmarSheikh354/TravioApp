@@ -25,6 +25,10 @@ npm start
 
 Replace the placeholder values in `.env` with real API credentials before testing live Claude, marketplace, Stripe, and Supabase flows.
 
+## Android release
+
+See `docs/PLAY_STORE_RELEASE.md` for EAS build commands, Play Store release steps, and the required production configuration checklist.
+
 ## Database
 
 Run `supabase/schema.sql` in the Supabase SQL editor to create:

@@ -6,6 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.travio.app",
@@ -17,6 +18,11 @@
     },
     "android": {
       "package": "com.travio.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#05070d"
+      },
       "permissions": [
         "POST_NOTIFICATIONS"
       ]
@@ -33,7 +39,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#05070d"
+          "backgroundColor": "#05070d",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180
         }
       ],
       "expo-web-browser",
