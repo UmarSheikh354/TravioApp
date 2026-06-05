@@ -21,6 +21,24 @@ function numericPrice(value: unknown, fallback: number) {
   return fallback;
 }
 
+function readPath(source: unknown, path: string[]) {
+  return path.reduce<unknown>((current, key) => {
+    if (!current || typeof current !== "object") {
+      return undefined;
+    }
+
+    return (current as Record<string, unknown>)[key];
+  }, source);
+}
+
+function amazonPrice(item: Record<string, unknown>) {
+  return (
+    readPath(item, ["OffersV2", "Listings", "0", "Price", "Money", "Amount"]) ??
+    readPath(item, ["OffersV2", "Listings", "0", "Price", "Amount"]) ??
+    readPath(item, ["Offers", "Listings", "0", "Price", "Amount"])
+  );
+}
+
 function optionFromRaw(raw: Record<string, unknown>, supplier: ProductOption["supplier"], query: string): ProductOption {
   const name =
     (raw.product_title as string) ??
@@ -117,15 +135,13 @@ export async function searchAmazon(query: string): Promise<ApiResult<ProductOpti
 
   const itemInfo = firstItem.ItemInfo as Record<string, Record<string, string>> | undefined;
   const images = firstItem.Images as Record<string, Record<string, Record<string, string>>> | undefined;
-  const offers = firstItem.Offers as Record<string, Array<Record<string, Record<string, number>>>> | undefined;
-  const offersV2 = firstItem.OffersV2 as Record<string, Array<Record<string, Record<string, number>>>> | undefined;
 
   return {
     data: optionFromRaw(
       {
         asin: firstItem.ASIN,
         title: itemInfo?.Title?.DisplayValue,
-        price: offersV2?.Listings?.[0]?.Price?.Money?.Amount ?? offers?.Listings?.[0]?.Price?.Amount,
+        price: amazonPrice(firstItem),
         image: images?.Primary?.Medium?.URL,
         delivery_days: 7,
         description: firstItem.DetailPageURL

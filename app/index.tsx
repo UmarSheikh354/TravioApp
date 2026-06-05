@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Animated, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useApp } from "@/context/AppContext";
@@ -7,8 +7,8 @@ import { useApp } from "@/context/AppContext";
 export default function SplashScreen() {
   const { t } = useTranslation();
   const { user, loading } = useApp();
-  const logoScale = useRef(new Animated.Value(0.88)).current;
-  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const [logoScale] = useState(() => new Animated.Value(0.88));
+  const [logoOpacity] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     Animated.parallel([

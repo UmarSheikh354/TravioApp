@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { LoadingDots } from "@/components/LoadingDots";
@@ -34,37 +34,22 @@ export default function AIChatScreen() {
   const [lastQuery, setLastQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
-  useEffect(() => {
-    AsyncStorage.getItem(SEARCH_HISTORY_KEY)
-      .then((raw) => setSearchHistory(raw ? (JSON.parse(raw) as string[]) : []))
-      .catch(() => setSearchHistory([]));
-  }, []);
-
-  useEffect(() => {
-    if (!initialQuery || ranInitialQuery.current) {
-      return;
-    }
-
-    ranInitialQuery.current = true;
-    void runSearch(initialQuery);
-  }, [initialQuery]);
-
-  function rememberSearch(query: string) {
+  const rememberSearch = useCallback((query: string) => {
     setSearchHistory((current) => {
       const next = [query, ...current.filter((item) => item.toLowerCase() !== query.toLowerCase())].slice(0, 6);
       AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(next)).catch(() => undefined);
       return next;
     });
-  }
+  }, []);
 
-  function normalizeErrors(nextErrors: string[]) {
+  const normalizeErrors = useCallback((nextErrors: string[]) => {
     const offline = nextErrors.some((message) => /network|fetch|offline/i.test(message));
     return offline
       ? ["You appear to be offline. Check your internet connection and retry.", ...nextErrors]
       : nextErrors;
-  }
+  }, []);
 
-  async function runSearch(rawQuery: string) {
+  const runSearch = useCallback(async (rawQuery: string) => {
     const query = rawQuery.trim();
     if (!query) {
       return;
@@ -105,7 +90,22 @@ export default function AIChatScreen() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [normalizeErrors, rememberSearch, t]);
+
+  useEffect(() => {
+    AsyncStorage.getItem(SEARCH_HISTORY_KEY)
+      .then((raw) => setSearchHistory(raw ? (JSON.parse(raw) as string[]) : []))
+      .catch(() => setSearchHistory([]));
+  }, []);
+
+  useEffect(() => {
+    if (!initialQuery || ranInitialQuery.current) {
+      return;
+    }
+
+    ranInitialQuery.current = true;
+    void runSearch(initialQuery);
+  }, [initialQuery, runSearch]);
 
   async function handleSearch() {
     await runSearch(input);
