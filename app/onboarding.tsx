@@ -4,6 +4,8 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
+import { TravioHeader, TravioMark } from "@/components/TravioMark";
+import { colors } from "@/lib/theme";
 
 const slides = [
   {
@@ -36,8 +38,9 @@ export default function OnboardingScreen() {
 
   return (
     <Screen scroll={false} style={styles.screen}>
+      <TravioHeader />
       <View style={styles.hero}>
-        <Text style={styles.logo}>{t("appName")}</Text>
+        <TravioMark size={46} />
         <Text style={styles.counter}>
           {index + 1}/{slides.length}
         </Text>
@@ -59,41 +62,37 @@ export default function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   screen: {
-    justifyContent: "center"
+    justifyContent: "space-between"
   },
   hero: {
     alignItems: "center",
-    gap: 10
-  },
-  logo: {
-    color: "#fff",
-    fontSize: 38,
-    fontWeight: "900"
+    gap: 14,
+    marginTop: 42
   },
   counter: {
-    color: "#21d4a2",
+    color: colors.muted,
     fontWeight: "700"
   },
   card: {
-    backgroundColor: "#0f1728",
-    borderColor: "#24304a",
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
     borderRadius: 28,
     borderWidth: 1,
     gap: 16,
-    minHeight: 280,
+    minHeight: 230,
     justifyContent: "center",
     padding: 28
   },
   title: {
-    color: "#fff",
-    fontSize: 30,
+    color: colors.text,
+    fontSize: 24,
     fontWeight: "900",
     textAlign: "center"
   },
   body: {
-    color: "#c5ccdc",
-    fontSize: 16,
-    lineHeight: 24,
+    color: colors.muted,
+    fontSize: 13,
+    lineHeight: 20,
     textAlign: "center"
   },
   dots: {
@@ -102,13 +101,13 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   dot: {
-    backgroundColor: "#2c3448",
+    backgroundColor: colors.control,
     borderRadius: 99,
     height: 8,
     width: 8
   },
   activeDot: {
-    backgroundColor: "#21d4a2",
+    backgroundColor: colors.accent,
     width: 28
   }
 });

@@ -1,11 +1,13 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
+import { TravioHeader } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
+import { colors } from "@/lib/theme";
 
 export default function EmailVerificationScreen() {
   const { t } = useTranslation();
@@ -29,37 +31,58 @@ export default function EmailVerificationScreen() {
 
   return (
     <Screen style={styles.screen}>
-      <Text style={styles.title}>{t("verification")}</Text>
-      <Text style={styles.subtitle}>{t("verificationHint")}</Text>
-      <Text style={styles.email}>{email}</Text>
-      <TextField
-        label="Code"
-        keyboardType="number-pad"
-        placeholder="000000"
-        value={token}
-        onChangeText={setToken}
-      />
-      <PrimaryButton title={t("verify")} loading={loading} onPress={handleVerify} />
+      <TravioHeader />
+      <View style={styles.center}>
+        <Text style={styles.icon}>✉</Text>
+        <Text style={styles.title}>{t("verification")}</Text>
+        <Text style={styles.subtitle}>{t("verificationHint")}</Text>
+        <Text style={styles.email}>{email}</Text>
+      </View>
+      <View style={styles.controls}>
+        <TextField
+          label="Code"
+          keyboardType="number-pad"
+          placeholder="000000"
+          value={token}
+          onChangeText={setToken}
+        />
+        <PrimaryButton title={t("verify")} loading={loading} onPress={handleVerify} />
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    justifyContent: "center"
+    justifyContent: "space-between"
+  },
+  center: {
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16
+  },
+  controls: {
+    gap: 10,
+    paddingBottom: 8
+  },
+  icon: {
+    color: colors.accent,
+    fontSize: 38
   },
   title: {
-    color: "#fff",
-    fontSize: 32,
+    color: colors.text,
+    fontSize: 18,
     fontWeight: "900"
   },
   subtitle: {
-    color: "#9aa7bd",
-    fontSize: 16,
-    lineHeight: 24
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: "center"
   },
   email: {
-    color: "#21d4a2",
+    color: colors.accent,
+    fontSize: 11,
     fontWeight: "700"
   }
 });

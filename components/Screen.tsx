@@ -1,6 +1,7 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView, StyleSheet, View, type ScrollViewProps, type ViewStyle } from "react-native";
 import type { PropsWithChildren } from "react";
+import { colors } from "@/lib/theme";
 
 type Props = PropsWithChildren<{
   scroll?: boolean;
@@ -31,14 +32,15 @@ export function Screen({ children, scroll = true, refreshControl, style }: Props
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#05070d"
+    backgroundColor: colors.background
   },
   scrollContent: {
     flexGrow: 1
   },
   content: {
     flex: 1,
-    padding: 20,
-    gap: 16
+    gap: 16,
+    paddingHorizontal: 22,
+    paddingVertical: 18
   }
 });

@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
+import { colors, radii } from "@/lib/theme";
 
 type Props = {
   title: string;
@@ -23,7 +24,11 @@ export function PrimaryButton({ title, onPress, loading = false, disabled = fals
         pressed && styles.pressed
       ]}
     >
-      {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.text}>{title}</Text>}
+      {loading ? (
+        <ActivityIndicator color={variant === "secondary" ? colors.text : colors.accentText} />
+      ) : (
+        <Text style={[styles.text, variant === "secondary" && styles.secondaryText]}>{title}</Text>
+      )}
     </Pressable>
   );
 }
@@ -31,16 +36,16 @@ export function PrimaryButton({ title, onPress, loading = false, disabled = fals
 const styles = StyleSheet.create({
   button: {
     alignItems: "center",
-    backgroundColor: "#21d4a2",
-    borderRadius: 16,
-    minHeight: 52,
+    backgroundColor: colors.accent,
+    borderRadius: radii.control,
+    minHeight: 34,
     justifyContent: "center",
-    paddingHorizontal: 18,
-    paddingVertical: 14
+    paddingHorizontal: 14,
+    paddingVertical: 9
   },
   secondary: {
-    backgroundColor: "#182033",
-    borderColor: "#303a55",
+    backgroundColor: colors.control,
+    borderColor: colors.border,
     borderWidth: 1
   },
   disabled: {
@@ -50,8 +55,11 @@ const styles = StyleSheet.create({
     opacity: 0.8
   },
   text: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700"
+    color: colors.accentText,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  secondaryText: {
+    color: colors.text
   }
 });

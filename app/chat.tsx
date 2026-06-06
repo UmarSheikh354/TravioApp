@@ -1,16 +1,17 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { LoadingDots } from "@/components/LoadingDots";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ProductCard } from "@/components/ProductCard";
 import { Screen } from "@/components/Screen";
-import { TextField } from "@/components/TextField";
+import { TravioHeader } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
 import { searchTravioProducts } from "@/services/search";
 import type { ChatMessage, ProductOption } from "@/types/travio";
+import { colors, radii } from "@/lib/theme";
 
 const SEARCH_HISTORY_KEY = "travio.searchHistory";
 
@@ -117,12 +118,12 @@ export default function AIChatScreen() {
   }
 
   return (
-    <Screen>
-      <Text style={styles.title}>{t("chat")}</Text>
+    <Screen style={styles.screen}>
+      <TravioHeader />
       {messages.map((message) => (
         <View key={message.id} style={[styles.message, message.role === "user" ? styles.userMessage : styles.aiMessage]}>
-          <Text style={styles.messageRole}>{message.role === "user" ? "You" : "Travio AI"}</Text>
-          <Text style={styles.messageText}>{message.content}</Text>
+          <Text style={styles.messageRole}>{message.role === "user" ? "You" : "TRAVIO"}</Text>
+          <Text style={[styles.messageText, message.role === "user" && styles.userMessageText]}>{message.content}</Text>
           {message.products?.map((product) => (
             <ProductCard key={`${product.supplier}-${product.name}`} product={product} onConfirm={confirm} />
           ))}
@@ -131,7 +132,7 @@ export default function AIChatScreen() {
 
       {loading ? (
         <View style={[styles.message, styles.aiMessage]}>
-          <Text style={styles.messageRole}>Travio AI</Text>
+          <Text style={styles.messageRole}>TRAVIO</Text>
           <View style={styles.loadingRow}>
             <Text style={styles.messageText}>{t("searching")}</Text>
             <LoadingDots />
@@ -165,62 +166,68 @@ export default function AIChatScreen() {
       ) : null}
 
       <View style={styles.inputRow}>
-        <View style={styles.inputWrap}>
-          <TextField
-            label={t("chatPlaceholder")}
-            placeholder="e.g. 100 cotton tote bags under $2 each"
-            value={input}
-            onChangeText={setInput}
-            multiline
-          />
-        </View>
-        <PrimaryButton title={t("search")} loading={loading} disabled={!input.trim()} onPress={handleSearch} />
+        <TextInput
+          placeholder="Can you tell me anything, right?"
+          placeholderTextColor={colors.dim}
+          value={input}
+          onChangeText={setInput}
+          multiline
+          style={styles.input}
+        />
+        <Pressable style={[styles.sendButton, (!input.trim() || loading) && styles.disabledSend]} onPress={handleSearch} disabled={!input.trim() || loading}>
+          <Text style={styles.sendText}>{loading ? "..." : ">"}</Text>
+        </Pressable>
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    color: "#fff",
-    fontSize: 30,
-    fontWeight: "900"
+  screen: {
+    paddingBottom: 16
   },
   message: {
-    borderRadius: 22,
+    borderRadius: radii.card,
     gap: 12,
-    padding: 14
+    padding: 14,
+    width: "92%"
   },
   userMessage: {
-    backgroundColor: "#173426"
+    alignSelf: "flex-end",
+    backgroundColor: colors.accent
   },
   aiMessage: {
-    backgroundColor: "#0f1728"
+    alignSelf: "flex-start",
+    backgroundColor: colors.panel
   },
   messageRole: {
-    color: "#21d4a2",
-    fontSize: 12,
+    color: colors.accent,
+    fontSize: 10,
     fontWeight: "900",
     textTransform: "uppercase"
   },
   messageText: {
-    color: "#fff",
-    lineHeight: 22
+    color: colors.text,
+    fontSize: 13,
+    lineHeight: 20
+  },
+  userMessageText: {
+    color: colors.accentText
   },
   errorBox: {
-    backgroundColor: "#321c1c",
-    borderColor: "#794242",
+    backgroundColor: colors.dangerPanel,
+    borderColor: "#593638",
     borderRadius: 18,
     borderWidth: 1,
     gap: 6,
     padding: 14
   },
   errorTitle: {
-    color: "#ffd6d6",
+    color: colors.dangerText,
     fontWeight: "900"
   },
   errorText: {
-    color: "#ffc7c7",
+    color: colors.dangerText,
     lineHeight: 20
   },
   loadingRow: {
@@ -230,8 +237,8 @@ const styles = StyleSheet.create({
     gap: 10
   },
   historyBox: {
-    backgroundColor: "#101827",
-    borderColor: "#24304a",
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
     gap: 10,
@@ -243,19 +250,46 @@ const styles = StyleSheet.create({
     gap: 8
   },
   historyPill: {
-    backgroundColor: "#182033",
+    backgroundColor: colors.control,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 8
   },
   historyText: {
-    color: "#d7deee",
+    color: colors.muted,
     fontWeight: "700"
   },
   inputRow: {
-    gap: 12
+    alignItems: "center",
+    backgroundColor: colors.accent,
+    borderRadius: 24,
+    flexDirection: "row",
+    gap: 8,
+    marginTop: "auto",
+    minHeight: 58,
+    paddingHorizontal: 14,
+    paddingVertical: 8
   },
-  inputWrap: {
-    flex: 1
+  input: {
+    color: colors.accentText,
+    flex: 1,
+    fontSize: 13,
+    maxHeight: 100,
+    minHeight: 38
+  },
+  sendButton: {
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderRadius: 18,
+    height: 36,
+    justifyContent: "center",
+    width: 36
+  },
+  disabledSend: {
+    opacity: 0.65
+  },
+  sendText: {
+    color: colors.accent,
+    fontWeight: "900"
   }
 });

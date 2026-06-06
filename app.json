@@ -52,6 +52,12 @@
           "enableGooglePay": true
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "284ec853-0156-4815-8741-c55ea8510724"
+      }
+    }
   }
 }

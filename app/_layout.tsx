@@ -22,12 +22,12 @@ export default function RootLayout() {
           >
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ title: "Login" }} />
-            <Stack.Screen name="email-verification" options={{ title: "Email Verification" }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="email-verification" options={{ headerShown: false }} />
             <Stack.Screen name="privacy-policy" options={{ title: "Privacy Policy" }} />
             <Stack.Screen name="terms-conditions" options={{ title: "Terms and Conditions" }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="chat" options={{ title: "Travio AI" }} />
+            <Stack.Screen name="chat" options={{ headerShown: false }} />
             <Stack.Screen name="order-confirmation" options={{ title: "Confirm Order" }} />
             <Stack.Screen name="payment" options={{ title: "Payment" }} />
             <Stack.Screen name="order-success" options={{ title: "Order Success", headerBackVisible: false }} />

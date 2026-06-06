@@ -5,7 +5,9 @@ import { useTranslation } from "react-i18next";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
+import { TravioHeader, TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
+import { colors } from "@/lib/theme";
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -54,77 +56,86 @@ export default function LoginScreen() {
 
   return (
     <Screen style={styles.screen}>
-      <Text style={styles.title}>{t("login")}</Text>
-      <Text style={styles.subtitle}>Access Travio to search, pay, and track orders.</Text>
-      <PrimaryButton
-        title={t("continueWithApple")}
-        variant="secondary"
-        loading={loading === "apple"}
-        disabled={!agreed}
-        onPress={() => handleSocial("apple")}
-      />
-      <PrimaryButton
-        title={t("continueWithGoogle")}
-        variant="secondary"
-        loading={loading === "google"}
-        disabled={!agreed}
-        onPress={() => handleSocial("google")}
-      />
-      <TextField
-        label={t("email")}
-        keyboardType="email-address"
-        placeholder="you@example.com"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <Pressable style={styles.agreementRow} onPress={() => setAgreed((value) => !value)}>
-        <View style={[styles.checkbox, agreed && styles.checked]}>
-          {agreed ? <Text style={styles.checkmark}>✓</Text> : null}
-        </View>
-        <Text style={styles.agreementText}>I agree to Terms and Privacy Policy</Text>
-      </Pressable>
-      <View style={styles.linkRow}>
-        <Pressable onPress={() => router.push("/terms-conditions")}>
-          <Text style={styles.link}>Terms and Conditions</Text>
-        </Pressable>
-        <Text style={styles.separator}>•</Text>
-        <Pressable onPress={() => router.push("/privacy-policy")}>
-          <Text style={styles.link}>Privacy Policy</Text>
-        </Pressable>
+      <TravioHeader />
+      <View style={styles.center}>
+        <TravioMark size={42} />
+        <Text style={styles.title}>Your AI{"\n"}Shopping{"\n"}Companion</Text>
       </View>
-      <PrimaryButton
-        title={t("continueWithEmail")}
-        loading={loading === "email"}
-        disabled={!email.includes("@") || !agreed}
-        onPress={handleEmail}
-      />
+      <View style={styles.controls}>
+        <PrimaryButton
+          title={t("continueWithApple")}
+          loading={loading === "apple"}
+          disabled={!agreed}
+          onPress={() => handleSocial("apple")}
+        />
+        <PrimaryButton
+          title={t("continueWithGoogle")}
+          loading={loading === "google"}
+          disabled={!agreed}
+          onPress={() => handleSocial("google")}
+        />
+        <TextField
+          label={t("email")}
+          keyboardType="email-address"
+          placeholder="Enter email address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <Pressable style={styles.agreementRow} onPress={() => setAgreed((value) => !value)}>
+          <View style={[styles.checkbox, agreed && styles.checked]}>
+            {agreed ? <Text style={styles.checkmark}>✓</Text> : null}
+          </View>
+          <Text style={styles.agreementText}>I agree to Terms and Privacy Policy</Text>
+        </Pressable>
+        <View style={styles.linkRow}>
+          <Pressable onPress={() => router.push("/terms-conditions")}>
+            <Text style={styles.link}>Terms</Text>
+          </Pressable>
+          <Text style={styles.separator}>•</Text>
+          <Pressable onPress={() => router.push("/privacy-policy")}>
+            <Text style={styles.link}>Privacy</Text>
+          </Pressable>
+        </View>
+        <PrimaryButton
+          title={t("login")}
+          variant="secondary"
+          loading={loading === "email"}
+          disabled={!email.includes("@") || !agreed}
+          onPress={handleEmail}
+        />
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    justifyContent: "center"
+    justifyContent: "space-between"
+  },
+  center: {
+    alignItems: "center",
+    gap: 18
+  },
+  controls: {
+    gap: 8,
+    paddingBottom: 8
   },
   title: {
-    color: "#fff",
-    fontSize: 34,
-    fontWeight: "900"
-  },
-  subtitle: {
-    color: "#9aa7bd",
-    fontSize: 16,
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "900",
     lineHeight: 24,
-    marginBottom: 16
+    textAlign: "center"
   },
   agreementRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 12
+    gap: 9,
+    marginTop: 2
   },
   checkbox: {
     alignItems: "center",
-    borderColor: "#536078",
+    borderColor: colors.dim,
     borderRadius: 6,
     borderWidth: 1,
     height: 24,
@@ -132,16 +143,17 @@ const styles = StyleSheet.create({
     width: 24
   },
   checked: {
-    backgroundColor: "#21d4a2",
-    borderColor: "#21d4a2"
+    backgroundColor: colors.accent,
+    borderColor: colors.accent
   },
   checkmark: {
-    color: "#05070d",
+    color: colors.accentText,
     fontWeight: "900"
   },
   agreementText: {
-    color: "#d7deee",
+    color: colors.muted,
     flex: 1,
+    fontSize: 11,
     lineHeight: 20
   },
   linkRow: {
@@ -150,10 +162,11 @@ const styles = StyleSheet.create({
     gap: 8
   },
   link: {
-    color: "#21d4a2",
+    color: colors.accent,
+    fontSize: 11,
     fontWeight: "800"
   },
   separator: {
-    color: "#536078"
+    color: colors.dim
   }
 });
