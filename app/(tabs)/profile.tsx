@@ -38,7 +38,7 @@ export default function ProfileScreen() {
         <Text style={styles.sectionLabel}>ACCOUNT</Text>
         <View style={styles.group}>
           <SettingsRow icon="✉" label="Email" value={user?.email ?? "rey@gmail.com"} />
-          <SettingsRow icon="⊞" label="Subscription" value="ChatGPT Plus" />
+          <SettingsRow icon="⊞" label="Subscription" value="Travio / Travio Plus" />
         </View>
 
         <Text style={styles.sectionLabel}>DATA</Text>
@@ -69,6 +69,17 @@ export default function ProfileScreen() {
           />
         </View>
         <Text style={styles.note}>For best results, select the language you mainly speak.</Text>
+
+        <Text style={styles.sectionLabel}>MARKETPLACE</Text>
+        <View style={styles.group}>
+          {["Amazon", "Alibaba", "Temu", "AliExpress"].map((marketplace) => (
+            <View key={marketplace} style={styles.row}>
+              <Text style={styles.rowIcon}>●</Text>
+              <Text style={styles.rowLabel}>{marketplace}</Text>
+              <Switch value trackColor={{ true: "#34c759", false: "#c9c9c9" }} thumbColor="#ffffff" />
+            </View>
+          ))}
+        </View>
 
         <Text style={styles.sectionLabel}>ABOUT</Text>
         <View style={styles.group}>

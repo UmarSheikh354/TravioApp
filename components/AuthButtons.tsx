@@ -55,8 +55,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#2b2b2d"
   },
   authOutline: {
-    backgroundColor: "transparent",
-    borderColor: "#202020",
+    backgroundColor: "#000000",
+    borderColor: "#000000",
     borderWidth: 1
   },
   authText: {

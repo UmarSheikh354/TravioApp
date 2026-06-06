@@ -10,7 +10,7 @@ export function TravioMark({ size = 54, showWordmark = false }: Props) {
   return (
     <View style={styles.wrap}>
       {showWordmark ? <Text style={styles.wordmark}>TRAVIO</Text> : null}
-      <Image source={require("@/assets/travio-logo.png")} style={{ height: size, width: size }} resizeMode="contain" />
+      <Image source={require("../assets/travio-logo.png")} style={{ height: size, width: size }} resizeMode="contain" />
     </View>
   );
 }
@@ -33,7 +33,8 @@ export function TravioHeader({ onMenuPress, onEditPress, onTitlePress }: HeaderP
       ) : (
         <View style={styles.headerIcon} />
       )}
-      <Pressable onPress={onTitlePress} disabled={!onTitlePress}>
+      <Pressable onPress={onTitlePress} disabled={!onTitlePress} style={styles.headerCenter}>
+        <Image source={require("../assets/travio-logo.png")} style={styles.headerLogo} resizeMode="contain" />
         <Text style={styles.headerTitle}>TRAVIO ›</Text>
       </Pressable>
       {showActions ? (
@@ -70,6 +71,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "900",
     letterSpacing: 0.7
+  },
+  headerCenter: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 6
+  },
+  headerLogo: {
+    height: 18,
+    tintColor: colors.text,
+    width: 18
   },
   headerIcon: {
     alignItems: "center",

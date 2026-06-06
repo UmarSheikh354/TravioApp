@@ -1,6 +1,7 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { PrimaryButton } from "@/components/PrimaryButton";
+import { colors } from "@/lib/theme";
 import type { ProductOption } from "@/types/travio";
 
 type Props = {
@@ -22,13 +23,29 @@ export function ProductCard({ product, onConfirm }: Props) {
       {product.category ? <Text style={styles.meta}>Category: {product.category}</Text> : null}
       <View style={styles.metaRow}>
         <Text style={styles.meta}>
-          {t("supplier")}: {product.supplier}
+          Platform: {product.supplier}
         </Text>
+        <Text style={styles.meta}>★ 4.8</Text>
         <Text style={styles.meta}>
           {t("delivery")}: {product.delivery_days} {t("days")}
         </Text>
       </View>
-      <Text style={styles.meta}>Unit: ${product.price_per_unit.toFixed(2)}</Text>
+      <View style={styles.compareRow}>
+        <Text style={styles.compareText}>Amazon ${product.total_price.toFixed(2)}</Text>
+        <Text style={styles.compareText}>Alibaba ${(product.total_price * 0.92).toFixed(2)}</Text>
+        <Text style={styles.compareText}>Temu ${(product.total_price * 0.87).toFixed(2)}</Text>
+      </View>
+      <View style={styles.actions}>
+        <Pressable style={styles.darkAction}>
+          <Text style={styles.darkActionText}>View Deal</Text>
+        </Pressable>
+        <Pressable style={styles.lightAction}>
+          <Text style={styles.lightActionText}>Save</Text>
+        </Pressable>
+        <Pressable style={styles.lightAction}>
+          <Text style={styles.lightActionText}>Compare</Text>
+        </Pressable>
+      </View>
       {onConfirm ? <PrimaryButton title={t("confirmOrder")} onPress={() => onConfirm(product)} /> : null}
     </View>
   );
@@ -36,15 +53,15 @@ export function ProductCard({ product, onConfirm }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#0f1728",
-    borderColor: "#24304a",
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
     borderRadius: 22,
     borderWidth: 1,
     gap: 12,
     padding: 16
   },
   image: {
-    backgroundColor: "#1d2638",
+    backgroundColor: colors.panelSoft,
     borderRadius: 16,
     height: 150,
     width: "100%"
@@ -55,18 +72,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   name: {
-    color: "#fff",
+    color: colors.text,
     flex: 1,
     fontSize: 18,
     fontWeight: "800"
   },
   price: {
-    color: "#21d4a2",
+    color: colors.text,
     fontSize: 18,
     fontWeight: "800"
   },
   description: {
-    color: "#c5ccdc",
+    color: colors.muted,
     lineHeight: 20
   },
   metaRow: {
@@ -75,7 +92,45 @@ const styles = StyleSheet.create({
     gap: 12
   },
   meta: {
-    color: "#9aa7bd",
+    color: colors.muted,
     fontSize: 13
+  },
+  compareRow: {
+    backgroundColor: colors.panelSoft,
+    borderRadius: 12,
+    gap: 4,
+    padding: 10
+  },
+  compareText: {
+    color: colors.text,
+    fontSize: 12
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 8
+  },
+  darkAction: {
+    backgroundColor: colors.control,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  darkActionText: {
+    color: colors.inverseText,
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  lightAction: {
+    backgroundColor: colors.panelSoft,
+    borderColor: colors.border,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  lightActionText: {
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: "700"
   }
 });

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
+import { colors } from "@/lib/theme";
 
 export default function SplashScreen() {
   const { user, loading } = useApp();
@@ -39,7 +40,7 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <Animated.View style={{ opacity: logoOpacity, transform: [{ scale: logoScale }] }}>
-        <TravioMark size={58} />
+        <TravioMark size={330} />
       </Animated.View>
     </View>
   );
@@ -48,7 +49,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    backgroundColor: "#1E1E1E",
+    backgroundColor: colors.background,
     flex: 1,
     justifyContent: "center",
     padding: 24

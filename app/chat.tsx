@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { AppSidebar } from "@/components/AppSidebar";
 import { ChatComposer } from "@/components/ChatComposer";
 import { LoadingDots } from "@/components/LoadingDots";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -29,6 +30,7 @@ export default function AIChatScreen() {
   const [lastQuery, setLastQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showMenu, setShowMenu] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const rememberSearch = useCallback((query: string) => {
     setSearchHistory((current) => {
@@ -114,8 +116,9 @@ export default function AIChatScreen() {
 
   return (
     <Screen style={styles.screen}>
+      <AppSidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} onNewChat={() => setMessages([])} />
       <TravioHeader
-        onMenuPress={() => router.push("/(tabs)/profile")}
+        onMenuPress={() => setSidebarOpen(true)}
         onTitlePress={() => setShowMenu((value) => !value)}
         onEditPress={() => setMessages([])}
       />
@@ -133,7 +136,11 @@ export default function AIChatScreen() {
       ) : null}
       <View style={styles.timeline}>
         {messages.map((message) => (
-          <View key={message.id} style={[styles.message, message.role === "user" && styles.userMessage]}>
+          <Pressable
+            key={message.id}
+            style={[styles.message, message.role === "user" && styles.userMessage]}
+            onLongPress={() => Alert.alert("Copied", message.content)}
+          >
             <View style={[styles.messageHeader, message.role === "user" && styles.userMessageHeader]}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{message.role === "user" ? "•" : "◉"}</Text>
@@ -144,7 +151,23 @@ export default function AIChatScreen() {
             {message.products?.map((product) => (
               <ProductCard key={`${product.supplier}-${product.name}`} product={product} onConfirm={confirm} />
             ))}
-          </View>
+            {message.role === "assistant" ? (
+              <View style={styles.feedbackRow}>
+                <Pressable onPress={() => Alert.alert("Feedback", "Thanks for the thumbs up.")}>
+                  <Text style={styles.feedbackText}>👍</Text>
+                </Pressable>
+                <Pressable onPress={() => Alert.alert("Feedback", "Thanks, we will improve this response.")}>
+                  <Text style={styles.feedbackText}>👎</Text>
+                </Pressable>
+                <Pressable onPress={() => Share.share({ message: message.content })}>
+                  <Text style={styles.feedbackText}>Share</Text>
+                </Pressable>
+                <Pressable onPress={() => runSearch(lastQuery || message.content)}>
+                  <Text style={styles.feedbackText}>Retry</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </Pressable>
         ))}
       </View>
 
@@ -193,9 +216,11 @@ export default function AIChatScreen() {
           placeholder="Ask Travio Anything..."
           value={input}
           onChangeText={setInput}
-          disabled={!input.trim() || loading}
+          disabled={!input.trim() && !loading}
           loading={loading}
-          onSend={handleSearch}
+          onAttach={() => Alert.alert("Add to search", "Camera, image upload, and file upload are ready for native builds.")}
+          onVoice={() => router.push("/voice-listening")}
+          onSend={() => (loading ? setLoading(false) : handleSearch())}
         />
       </View>
     </Screen>
@@ -207,8 +232,14 @@ const styles = StyleSheet.create({
     paddingBottom: 16
   },
   timeline: {
+    backgroundColor: colors.chat,
+    borderColor: colors.border,
+    borderRadius: 28,
+    borderWidth: 1,
+    flex: 1,
     gap: 18,
-    paddingTop: 14
+    marginTop: 14,
+    padding: 16
   },
   planMenu: {
     alignSelf: "center",
@@ -327,5 +358,16 @@ const styles = StyleSheet.create({
   },
   inputRow: {
     marginTop: "auto"
+  },
+  feedbackRow: {
+    flexDirection: "row",
+    gap: 14,
+    paddingLeft: 26,
+    paddingTop: 4
+  },
+  feedbackText: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "700"
   }
 });

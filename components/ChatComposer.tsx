@@ -4,24 +4,29 @@ import { colors } from "@/lib/theme";
 type Props = TextInputProps & {
   disabled?: boolean;
   loading?: boolean;
+  onAttach?: () => void;
+  onVoice?: () => void;
   onSend: () => void;
 };
 
-export function ChatComposer({ disabled, loading, onSend, style, ...props }: Props) {
+export function ChatComposer({ disabled, loading, onAttach, onSend, onVoice, style, ...props }: Props) {
   return (
     <View style={styles.composer}>
-      <Pressable style={styles.plusButton}>
+      <Pressable style={styles.plusButton} onPress={onAttach}>
         <Text style={styles.plusText}>+</Text>
       </Pressable>
       <TextInput
-        placeholder="Ask Travio Anything..."
-        placeholderTextColor="#c8c8c8"
+        placeholder="Search for any product..."
+        placeholderTextColor="#8C8C8C"
         style={[styles.input, style]}
         multiline
         {...props}
       />
+      <Pressable style={styles.micButton} onPress={onVoice}>
+        <Text style={styles.micText}>🎙</Text>
+      </Pressable>
       <Pressable style={[styles.sendButton, disabled && styles.disabled]} disabled={disabled} onPress={onSend}>
-        <Text style={styles.sendText}>{loading ? "..." : "↑"}</Text>
+        <Text style={styles.sendText}>{loading ? "■" : "↑"}</Text>
       </Pressable>
     </View>
   );
@@ -31,6 +36,8 @@ const styles = StyleSheet.create({
   composer: {
     alignItems: "center",
     backgroundColor: "#ffffff",
+    borderColor: colors.border,
+    borderWidth: 1,
     borderRadius: 24,
     flexDirection: "row",
     gap: 8,
@@ -69,6 +76,16 @@ const styles = StyleSheet.create({
   },
   disabled: {
     opacity: 0.5
+  },
+  micButton: {
+    alignItems: "center",
+    height: 32,
+    justifyContent: "center",
+    width: 28
+  },
+  micText: {
+    color: colors.text,
+    fontSize: 16
   },
   sendText: {
     color: "#ffffff",

@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { AppSidebar } from "@/components/AppSidebar";
 import { ChatComposer } from "@/components/ChatComposer";
 import { Screen } from "@/components/Screen";
 import { TravioHeader, TravioMark } from "@/components/TravioMark";
@@ -13,6 +14,7 @@ export default function HomeScreen() {
   const { orders } = useApp();
   const [request, setRequest] = useState("");
   const [showMenu, setShowMenu] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const activeOrders = orders.filter((order) => !["delivered", "cancelled"].includes(order.status));
   const recentOrders = orders.slice(0, 3);
 
@@ -24,8 +26,9 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll={false} style={styles.screen}>
+      <AppSidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} onNewChat={() => setRequest("")} />
       <TravioHeader
-        onMenuPress={() => router.push("/(tabs)/profile")}
+        onMenuPress={() => setSidebarOpen(true)}
         onTitlePress={() => setShowMenu((value) => !value)}
         onEditPress={() => router.push("/chat")}
       />
@@ -63,7 +66,15 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
-      <ChatComposer value={request} onChangeText={setRequest} placeholder="Ask Travio Anything..." disabled={!request.trim()} onSend={() => openChat(request)} />
+      <ChatComposer
+        value={request}
+        onChangeText={setRequest}
+        placeholder="Search for any product..."
+        disabled={!request.trim()}
+        onAttach={() => Alert.alert("Add to search", "Camera, image upload, and file upload are ready for native builds.")}
+        onVoice={() => router.push("/voice-listening")}
+        onSend={() => openChat(request)}
+      />
     </Screen>
   );
 }
@@ -74,8 +85,13 @@ const styles = StyleSheet.create({
   },
   canvas: {
     alignItems: "center",
+    backgroundColor: colors.chat,
+    borderColor: colors.border,
+    borderRadius: 28,
+    borderWidth: 1,
     flex: 1,
     justifyContent: "flex-end",
+    marginVertical: 14,
     paddingBottom: 16
   },
   emptyState: {

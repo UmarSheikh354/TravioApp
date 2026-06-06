@@ -36,7 +36,7 @@ export function PrimaryButton({ title, onPress, loading = false, disabled = fals
 const styles = StyleSheet.create({
   button: {
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.control,
     borderRadius: radii.control,
     minHeight: 34,
     justifyContent: "center",
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     paddingVertical: 9
   },
   secondary: {
-    backgroundColor: colors.control,
+    backgroundColor: colors.panelSoft,
     borderColor: colors.border,
     borderWidth: 1
   },
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     opacity: 0.8
   },
   text: {
-    color: colors.accentText,
+    color: colors.inverseText,
     fontSize: 12,
     fontWeight: "800"
   },

@@ -10,14 +10,14 @@ import { AppProvider } from "@/context/AppContext";
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <TravioStripeProvider>
         <AppProvider>
           <Stack
             screenOptions={{
-              headerStyle: { backgroundColor: "#05070d" },
-              headerTintColor: "#fff",
-              contentStyle: { backgroundColor: "#05070d" }
+              headerStyle: { backgroundColor: "#D9D9D9" },
+              headerTintColor: "#1A1A1A",
+              contentStyle: { backgroundColor: "#D9D9D9" }
             }}
           >
             <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -31,6 +31,8 @@ export default function RootLayout() {
             <Stack.Screen name="voice-intro" options={{ headerShown: false }} />
             <Stack.Screen name="choose-voice" options={{ headerShown: false }} />
             <Stack.Screen name="voice-call" options={{ headerShown: false }} />
+            <Stack.Screen name="voice-listening" options={{ headerShown: false }} />
+            <Stack.Screen name="saved" options={{ title: "Saved Products" }} />
             <Stack.Screen name="order-confirmation" options={{ title: "Confirm Order" }} />
             <Stack.Screen name="payment" options={{ title: "Payment" }} />
             <Stack.Screen name="order-success" options={{ title: "Order Success", headerBackVisible: false }} />
