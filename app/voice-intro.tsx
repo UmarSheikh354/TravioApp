@@ -13,6 +13,9 @@ const bullets = [
 export default function VoiceIntroScreen() {
   return (
     <Screen scroll={false} style={styles.screen}>
+      <Pressable style={styles.backButton} onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)/profile"))}>
+        <Text style={styles.backText}>‹</Text>
+      </Pressable>
       <View style={styles.content}>
         <Text style={styles.title}>Chat with voice</Text>
         <View style={styles.bullets}>
@@ -39,6 +42,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingBottom: 34,
     paddingTop: 96
+  },
+  backButton: {
+    alignItems: "center",
+    height: 36,
+    justifyContent: "center",
+    left: 18,
+    position: "absolute",
+    top: 46,
+    width: 36
+  },
+  backText: {
+    color: colors.text,
+    fontSize: 32,
+    lineHeight: 34
   },
   content: {
     gap: 28

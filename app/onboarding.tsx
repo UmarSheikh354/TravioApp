@@ -1,57 +1,71 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/PrimaryButton";
+import { AuthButtons } from "@/components/AuthButtons";
 import { Screen } from "@/components/Screen";
-import { TravioMark } from "@/components/TravioMark";
+import { useApp } from "@/context/AppContext";
 import { colors } from "@/lib/theme";
 
 const slides = [
   {
-    title: "TRAVIO",
-    body: ""
+    title: "Your AI\nShopping\nCompanion"
   },
   {
-    title: "Your AI\nShopping\nCompanion",
-    body: ""
-  },
-  {
-    title: "“Smart Personal\nRecommendation”",
-    body: ""
+    title: "“Smart Personal\nRecommendation”"
   }
 ];
 
 export default function OnboardingScreen() {
   const { t } = useTranslation();
+  const { signInWithApple, signInWithGoogle } = useApp();
   const [index, setIndex] = useState(0);
-  const slide = slides[index];
+  const [loading, setLoading] = useState<"apple" | "google" | "email" | null>(null);
+  const width = Dimensions.get("window").width;
 
-  function next() {
-    if (index === slides.length - 1) {
-      router.replace("/login");
-      return;
+  async function social(provider: "apple" | "google") {
+    try {
+      setLoading(provider);
+      if (provider === "apple") {
+        await signInWithApple(new Date().toISOString());
+      } else {
+        await signInWithGoogle(new Date().toISOString());
+      }
+      router.replace("/(tabs)");
+    } catch (error) {
+      Alert.alert(t("login"), error instanceof Error ? error.message : "Social login failed.");
+    } finally {
+      setLoading(null);
     }
-
-    setIndex((value) => value + 1);
   }
 
   return (
     <Screen scroll={false} style={styles.screen}>
-      <View style={styles.hero}>
-        <TravioMark size={42} showWordmark={index === 0} />
-      </View>
-      <View style={[styles.card, !slide.body && styles.emptyCard]}>
-        <Text style={styles.title}>{slide.title}</Text>
-        {slide.body ? <Text style={styles.body}>{slide.body}</Text> : null}
-      </View>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        style={styles.slider}
+        onMomentumScrollEnd={(event) => setIndex(Math.round(event.nativeEvent.contentOffset.x / width))}
+      >
+        {slides.map((slide) => (
+          <View key={slide.title} style={[styles.slide, { width: width - 44 }]}>
+            <Text style={styles.title}>{slide.title}</Text>
+          </View>
+        ))}
+      </ScrollView>
       <View style={styles.dots}>
         {slides.map((_, slideIndex) => (
           <View key={slideIndex} style={[styles.dot, slideIndex === index && styles.activeDot]} />
         ))}
       </View>
-      <PrimaryButton title={index === slides.length - 1 ? t("getStarted") : t("next")} onPress={next} />
-      <PrimaryButton title={t("skip")} variant="secondary" onPress={() => router.replace("/login")} />
+      <AuthButtons
+        loading={loading}
+        onApple={() => social("apple")}
+        onGoogle={() => social("google")}
+        onEmail={() => router.push("/login")}
+        onLogin={() => router.push("/login")}
+      />
     </Screen>
   );
 }
@@ -60,32 +74,20 @@ const styles = StyleSheet.create({
   screen: {
     justifyContent: "space-between"
   },
-  hero: {
+  slider: {
+    flexGrow: 0,
+    marginTop: 130
+  },
+  slide: {
     alignItems: "center",
-    gap: 14,
-    marginTop: 110
-  },
-  card: {
-    backgroundColor: "transparent",
-    gap: 16,
-    minHeight: 130,
     justifyContent: "center",
-    padding: 28
-  },
-  emptyCard: {
-    marginTop: -30
+    minHeight: 230
   },
   title: {
     color: colors.text,
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: "900",
-    lineHeight: 24,
-    textAlign: "center"
-  },
-  body: {
-    color: colors.muted,
-    fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 25,
     textAlign: "center"
   },
   dots: {

@@ -13,6 +13,11 @@ export function TravioMark({ size = 54, showWordmark = false }: Props) {
     <View style={styles.wrap}>
       {showWordmark ? <Text style={styles.wordmark}>TRAVIO</Text> : null}
       <View style={[styles.mark, { height: size, width: size, borderRadius: size / 2 }]}>
+        <View style={styles.pixelCluster}>
+          <View style={styles.pixel} />
+          <View style={styles.pixel} />
+          <View style={styles.pixel} />
+        </View>
         <View style={[styles.outerRing, { borderRadius: size / 2 }]} />
         <View style={[styles.innerDot, { height: dotSize, width: dotSize, borderRadius: dotSize / 2 }]} />
         <View style={[styles.hand, { height: size * 0.28, top: size * 0.2 }]} />
@@ -65,7 +70,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderColor: colors.accent,
     borderWidth: 2,
-    justifyContent: "center"
+    justifyContent: "center",
+    position: "relative"
+  },
+  pixelCluster: {
+    alignItems: "flex-end",
+    gap: 2,
+    position: "absolute",
+    right: -2,
+    top: -8
+  },
+  pixel: {
+    backgroundColor: colors.accent,
+    borderRadius: 1,
+    height: 4,
+    width: 4
   },
   outerRing: {
     borderColor: colors.accent,

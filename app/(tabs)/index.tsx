@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ChatComposer } from "@/components/ChatComposer";
 import { Screen } from "@/components/Screen";
-import { TravioHeader } from "@/components/TravioMark";
+import { TravioHeader, TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
 import { colors, radii } from "@/lib/theme";
 
@@ -40,14 +40,18 @@ export default function HomeScreen() {
         </View>
       ) : null}
       <View style={styles.canvas}>
-        {activeOrders.length > 0 ? (
+        {activeOrders.length === 0 ? (
+          <View style={styles.emptyLogo}>
+            <TravioMark size={44} />
+          </View>
+        ) : (
           <View style={styles.statusCard}>
             <Text style={styles.statusTitle}>{activeOrders.length} active order{activeOrders.length === 1 ? "" : "s"}</Text>
             {recentOrders.map((order) => (
               <Text key={order.id} style={styles.statusText}>{order.product_name} - {order.status}</Text>
             ))}
           </View>
-        ) : null}
+        )}
       </View>
       <View style={styles.quickRow}>
         {categories.slice(0, 3).map((category) => (
@@ -66,9 +70,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   canvas: {
+    alignItems: "center",
     flex: 1,
     justifyContent: "flex-end",
     paddingBottom: 16
+  },
+  emptyLogo: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+    width: "100%"
   },
   planMenu: {
     alignSelf: "center",

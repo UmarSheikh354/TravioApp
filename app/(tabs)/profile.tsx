@@ -30,7 +30,7 @@ export default function ProfileScreen() {
       <View style={styles.sheet}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Settings</Text>
-          <Pressable style={styles.close} onPress={() => router.replace("/(tabs)")}>
+          <Pressable style={styles.close} onPress={() => (router.canGoBack() ? router.back() : router.replace("/(tabs)"))}>
             <Text style={styles.closeText}>×</Text>
           </Pressable>
         </View>
