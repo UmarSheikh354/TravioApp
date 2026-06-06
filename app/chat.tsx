@@ -28,6 +28,7 @@ export default function AIChatScreen() {
   const [errors, setErrors] = useState<string[]>([]);
   const [lastQuery, setLastQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [showMenu, setShowMenu] = useState(false);
 
   const rememberSearch = useCallback((query: string) => {
     setSearchHistory((current) => {
@@ -113,17 +114,33 @@ export default function AIChatScreen() {
 
   return (
     <Screen style={styles.screen}>
-      <TravioHeader onMenuPress={() => router.push("/(tabs)/profile")} onEditPress={() => setMessages([])} />
+      <TravioHeader
+        onMenuPress={() => router.push("/(tabs)/profile")}
+        onTitlePress={() => setShowMenu((value) => !value)}
+        onEditPress={() => setMessages([])}
+      />
+      {showMenu ? (
+        <View style={styles.planMenu}>
+          <Pressable style={styles.planRow} onPress={() => router.push("/(tabs)/profile")}>
+            <Text style={styles.planText}>TRAVIO PLUS</Text>
+            <Text style={styles.planIcon}>ϟ</Text>
+          </Pressable>
+          <Pressable style={styles.planRow} onPress={() => setShowMenu(false)}>
+            <Text style={styles.planText}>✓ TRAVIO</Text>
+            <Text style={styles.planIcon}>✦</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <View style={styles.timeline}>
         {messages.map((message) => (
-          <View key={message.id} style={styles.message}>
-            <View style={styles.messageHeader}>
-              <View style={[styles.avatar, message.role === "user" && styles.userAvatar]}>
+          <View key={message.id} style={[styles.message, message.role === "user" && styles.userMessage]}>
+            <View style={[styles.messageHeader, message.role === "user" && styles.userMessageHeader]}>
+              <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{message.role === "user" ? "•" : "◉"}</Text>
               </View>
               <Text style={styles.messageRole}>{message.role === "user" ? "You" : "Travio"}</Text>
             </View>
-            <Text style={styles.messageText}>{message.content}</Text>
+            <Text style={[styles.messageText, message.role === "user" && styles.userText]}>{message.content}</Text>
             {message.products?.map((product) => (
               <ProductCard key={`${product.supplier}-${product.name}`} product={product} onConfirm={confirm} />
             ))}
@@ -173,7 +190,7 @@ export default function AIChatScreen() {
 
       <View style={styles.inputRow}>
         <ChatComposer
-          placeholder="Can you tell me anything, right?"
+          placeholder="Ask Travio Anything..."
           value={input}
           onChangeText={setInput}
           disabled={!input.trim() || loading}
@@ -193,24 +210,53 @@ const styles = StyleSheet.create({
     gap: 18,
     paddingTop: 14
   },
+  planMenu: {
+    alignSelf: "center",
+    backgroundColor: "#9b9b9f",
+    borderRadius: 9,
+    marginTop: 10,
+    overflow: "hidden",
+    width: 190
+  },
+  planRow: {
+    alignItems: "center",
+    borderBottomColor: "rgba(0,0,0,0.16)",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 38,
+    paddingHorizontal: 16
+  },
+  planText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: "700"
+  },
+  planIcon: {
+    color: colors.text,
+    fontSize: 20
+  },
   message: {
+    alignSelf: "flex-start",
     gap: 6,
-    width: "100%"
+    maxWidth: "92%"
+  },
+  userMessage: {
+    alignSelf: "flex-end"
   },
   messageHeader: {
     alignItems: "center",
     flexDirection: "row",
     gap: 8
   },
+  userMessageHeader: {
+    flexDirection: "row-reverse"
+  },
   avatar: {
     alignItems: "center",
     height: 18,
     justifyContent: "center",
     width: 18
-  },
-  userAvatar: {
-    borderRadius: 9,
-    overflow: "hidden"
   },
   avatarText: {
     color: colors.muted,
@@ -223,10 +269,16 @@ const styles = StyleSheet.create({
     fontWeight: "800"
   },
   messageText: {
-    color: colors.text,
+    color: colors.muted,
     fontSize: 12,
     lineHeight: 18,
     paddingLeft: 26
+  },
+  userText: {
+    color: colors.text,
+    paddingLeft: 0,
+    paddingRight: 26,
+    textAlign: "right"
   },
   errorBox: {
     backgroundColor: colors.dangerPanel,

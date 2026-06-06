@@ -1,17 +1,15 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
 import { ChatComposer } from "@/components/ChatComposer";
 import { Screen } from "@/components/Screen";
 import { TravioHeader, TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
 import { colors, radii } from "@/lib/theme";
 
-const categories = ["Electronics", "Fashion", "Home", "Beauty", "Sports", "Business"];
+const suggestions = ["Find me a product", "Compare prices", "Best deals today", "Track my order"];
 
 export default function HomeScreen() {
-  const { t } = useTranslation();
   const { orders } = useApp();
   const [request, setRequest] = useState("");
   const [showMenu, setShowMenu] = useState(false);
@@ -26,7 +24,11 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll={false} style={styles.screen}>
-      <TravioHeader onMenuPress={() => setShowMenu((value) => !value)} onEditPress={() => router.push("/chat")} />
+      <TravioHeader
+        onMenuPress={() => router.push("/(tabs)/profile")}
+        onTitlePress={() => setShowMenu((value) => !value)}
+        onEditPress={() => router.push("/chat")}
+      />
       {showMenu ? (
         <View style={styles.planMenu}>
           <Pressable style={styles.planRow} onPress={() => router.push("/(tabs)/profile")}>
@@ -41,8 +43,16 @@ export default function HomeScreen() {
       ) : null}
       <View style={styles.canvas}>
         {activeOrders.length === 0 ? (
-          <View style={styles.emptyLogo}>
-            <TravioMark size={44} />
+          <View style={styles.emptyState}>
+            <TravioMark size={58} />
+            <Text style={styles.emptyTitle}>How can I help you today?</Text>
+            <View style={styles.suggestionGrid}>
+              {suggestions.map((suggestion) => (
+                <Pressable key={suggestion} style={styles.suggestionChip} onPress={() => openChat(suggestion)}>
+                  <Text style={styles.suggestionText}>{suggestion}</Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
         ) : (
           <View style={styles.statusCard}>
@@ -53,14 +63,7 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
-      <View style={styles.quickRow}>
-        {categories.slice(0, 3).map((category) => (
-          <Pressable key={category} style={styles.categoryPill} onPress={() => openChat(category)}>
-            <Text style={styles.categoryText}>{category}</Text>
-          </Pressable>
-        ))}
-      </View>
-      <ChatComposer value={request} onChangeText={setRequest} placeholder={t("chatPlaceholder")} disabled={!request.trim()} onSend={() => openChat(request)} />
+      <ChatComposer value={request} onChangeText={setRequest} placeholder="Ask Travio Anything..." disabled={!request.trim()} onSend={() => openChat(request)} />
     </Screen>
   );
 }
@@ -75,11 +78,38 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     paddingBottom: 16
   },
-  emptyLogo: {
+  emptyState: {
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
+    gap: 18,
     width: "100%"
+  },
+  emptyTitle: {
+    color: colors.text,
+    fontSize: 19,
+    fontWeight: "700",
+    marginTop: 8
+  },
+  suggestionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 9,
+    justifyContent: "center",
+    marginTop: 12,
+    paddingHorizontal: 12
+  },
+  suggestionChip: {
+    borderColor: "#2a2a2a",
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 13,
+    paddingVertical: 9
+  },
+  suggestionText: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "600"
   },
   planMenu: {
     alignSelf: "center",
@@ -124,23 +154,4 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 11
   },
-  quickRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    justifyContent: "center"
-  },
-  categoryPill: {
-    backgroundColor: colors.control,
-    borderColor: colors.border,
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 7
-  },
-  categoryText: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: "700"
-  }
 });

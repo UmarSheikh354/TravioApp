@@ -30,7 +30,7 @@ export default function SplashScreen() {
     }
 
     const timeout = setTimeout(() => {
-      router.replace(user ? "/(tabs)" : "/login");
+      router.replace(user ? "/(tabs)" : "/onboarding");
     }, 3000);
 
     return () => clearTimeout(timeout);

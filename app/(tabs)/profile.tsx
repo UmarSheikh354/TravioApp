@@ -37,10 +37,11 @@ export default function ProfileScreen() {
 
         <Text style={styles.sectionLabel}>ACCOUNT</Text>
         <View style={styles.group}>
-          <SettingsRow icon="✉" label="Email" value={user?.email ?? "guest@travio.local"} />
-          <SettingsRow icon="⊞" label="Subscription" value="Travio Plus" />
+          <SettingsRow icon="✉" label="Email" value={user?.email ?? "rey@gmail.com"} />
+          <SettingsRow icon="⊞" label="Subscription" value="ChatGPT Plus" />
         </View>
 
+        <Text style={styles.sectionLabel}>DATA</Text>
         <View style={styles.group}>
           <SettingsRow icon="▣" label="Data Controls" value="›" />
           <SettingsRow icon="▤" label="Archived Chats" value="›" onPress={() => router.push("/(tabs)/orders")} />
@@ -63,7 +64,7 @@ export default function ProfileScreen() {
           <SettingsRow
             icon="◎"
             label="Main Language"
-            value={`${languages.find((item) => item.value === language)?.label ?? "Auto-Detect"} ↕`}
+            value={language === "en" ? "Auto-Detect ↕" : `${languages.find((item) => item.value === language)?.label ?? "Auto-Detect"} ↕`}
             onPress={() => setLanguage(language === "en" ? "ur" : language === "ur" ? "ar" : "en")}
           />
         </View>
@@ -107,11 +108,12 @@ const styles = StyleSheet.create({
   screen: {
     backgroundColor: colors.sheet,
     paddingHorizontal: 12,
-    paddingVertical: 20
+    paddingTop: 44
   },
   sheet: {
     backgroundColor: colors.sheet,
-    borderRadius: 34,
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
     flex: 1,
     gap: 11,
     padding: 16

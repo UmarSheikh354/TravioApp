@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "@/lib/theme";
 
 type Props = {
@@ -7,21 +7,10 @@ type Props = {
 };
 
 export function TravioMark({ size = 54, showWordmark = false }: Props) {
-  const dotSize = Math.max(6, size * 0.14);
-
   return (
     <View style={styles.wrap}>
       {showWordmark ? <Text style={styles.wordmark}>TRAVIO</Text> : null}
-      <View style={[styles.mark, { height: size, width: size, borderRadius: size / 2 }]}>
-        <View style={styles.pixelCluster}>
-          <View style={styles.pixel} />
-          <View style={styles.pixel} />
-          <View style={styles.pixel} />
-        </View>
-        <View style={[styles.outerRing, { borderRadius: size / 2 }]} />
-        <View style={[styles.innerDot, { height: dotSize, width: dotSize, borderRadius: dotSize / 2 }]} />
-        <View style={[styles.hand, { height: size * 0.28, top: size * 0.2 }]} />
-      </View>
+      <Image source={require("@/assets/travio-logo.png")} style={{ height: size, width: size }} resizeMode="contain" />
     </View>
   );
 }
@@ -29,9 +18,10 @@ export function TravioMark({ size = 54, showWordmark = false }: Props) {
 type HeaderProps = {
   onMenuPress?: () => void;
   onEditPress?: () => void;
+  onTitlePress?: () => void;
 };
 
-export function TravioHeader({ onMenuPress, onEditPress }: HeaderProps) {
+export function TravioHeader({ onMenuPress, onEditPress, onTitlePress }: HeaderProps) {
   const showActions = Boolean(onMenuPress || onEditPress);
 
   return (
@@ -43,7 +33,9 @@ export function TravioHeader({ onMenuPress, onEditPress }: HeaderProps) {
       ) : (
         <View style={styles.headerIcon} />
       )}
-      <Text style={styles.headerTitle}>TRAVIO ›</Text>
+      <Pressable onPress={onTitlePress} disabled={!onTitlePress}>
+        <Text style={styles.headerTitle}>TRAVIO ›</Text>
+      </Pressable>
       {showActions ? (
         <Pressable accessibilityRole="button" onPress={onEditPress} style={styles.headerIcon}>
           <Text style={styles.headerIconText}>✎</Text>
@@ -65,44 +57,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "900",
     letterSpacing: 0.4
-  },
-  mark: {
-    alignItems: "center",
-    borderColor: colors.accent,
-    borderWidth: 2,
-    justifyContent: "center",
-    position: "relative"
-  },
-  pixelCluster: {
-    alignItems: "flex-end",
-    gap: 2,
-    position: "absolute",
-    right: -2,
-    top: -8
-  },
-  pixel: {
-    backgroundColor: colors.accent,
-    borderRadius: 1,
-    height: 4,
-    width: 4
-  },
-  outerRing: {
-    borderColor: colors.accent,
-    borderWidth: 2,
-    bottom: 8,
-    left: 8,
-    position: "absolute",
-    right: 8,
-    top: 8
-  },
-  innerDot: {
-    backgroundColor: colors.accent
-  },
-  hand: {
-    backgroundColor: colors.accent,
-    borderRadius: 4,
-    position: "absolute",
-    width: 3
   },
   header: {
     alignItems: "center",
