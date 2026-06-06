@@ -47,8 +47,8 @@ export default function HomeScreen() {
       <View style={styles.canvas}>
         {activeOrders.length === 0 ? (
           <View style={styles.emptyState}>
-            <TravioMark size={58} />
-            <Text style={styles.emptyTitle}>How can I help you today?</Text>
+            <TravioMark size={64} />
+            <Text style={styles.emptyTitle}>How can I help you shop today?</Text>
             <View style={styles.suggestionGrid}>
               {suggestions.map((suggestion) => (
                 <Pressable key={suggestion} style={styles.suggestionChip} onPress={() => openChat(suggestion)}>
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     color: colors.text,
-    fontSize: 19,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "400",
     marginTop: 8
   },
   suggestionGrid: {
@@ -116,15 +116,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12
   },
   suggestionChip: {
-    borderColor: "#2a2a2a",
-    borderRadius: 999,
+    backgroundColor: "#FFFFFF",
+    borderColor: "#CCCCCC",
+    borderRadius: 20,
     borderWidth: 1,
-    paddingHorizontal: 13,
-    paddingVertical: 9
+    minHeight: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 10
   },
   suggestionText: {
     color: colors.muted,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "600"
   },
   planMenu: {

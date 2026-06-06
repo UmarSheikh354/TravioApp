@@ -32,6 +32,7 @@ type AppContextValue = {
   verifyEmail: (email: string, token: string, agreementAcceptedAt: string) => Promise<void>;
   signInWithApple: (agreementAcceptedAt: string) => Promise<void>;
   signInWithGoogle: (agreementAcceptedAt: string) => Promise<void>;
+  signInWithGoogleIdToken: (idToken: string, agreementAcceptedAt: string) => Promise<void>;
   logout: () => Promise<void>;
   selectProduct: (product: ProductOption) => void;
   setDraft: (draft: OrderDraft) => void;
@@ -164,15 +165,6 @@ export function AppProvider({ children }: PropsWithChildren) {
   }
 
   async function signInWithApple(agreementAcceptedAt: string) {
-    if (supabase && isSupabaseConfigured) {
-      await AsyncStorage.setItem(PENDING_AGREEMENT_KEY, agreementAcceptedAt);
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "apple" });
-      if (error) {
-        throw new Error(error.message);
-      }
-      return;
-    }
-
     const credential = await AppleAuthentication.signInAsync({
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -180,7 +172,30 @@ export function AppProvider({ children }: PropsWithChildren) {
       ]
     });
     const email = credential.email ?? "apple-user@travio.local";
-    const localUser = makeLocalUser(email, credential.fullName?.givenName ?? "Apple User", agreementAcceptedAt);
+    const name = credential.fullName?.givenName ?? "Apple User";
+
+    if (supabase && isSupabaseConfigured && credential.identityToken) {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "apple",
+        token: credential.identityToken
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const profile = makeLocalUser(data.user?.email ?? email, name, agreementAcceptedAt);
+      const supabaseProfile: TravioUser = {
+        ...profile,
+        id: data.user?.id ?? profile.id,
+        created_at: data.user?.created_at ?? profile.created_at
+      };
+      await upsertUserProfile(supabaseProfile);
+      setUser(supabaseProfile);
+      return;
+    }
+
+    const localUser = makeLocalUser(email, name, agreementAcceptedAt);
     await storeLocalUser(localUser);
     setUser(localUser);
   }
@@ -192,6 +207,35 @@ export function AppProvider({ children }: PropsWithChildren) {
       if (error) {
         throw new Error(error.message);
       }
+      return;
+    }
+
+    const localUser = makeLocalUser("google-user@travio.local", "Google User", agreementAcceptedAt);
+    await storeLocalUser(localUser);
+    setUser(localUser);
+  }
+
+  async function signInWithGoogleIdToken(idToken: string, agreementAcceptedAt: string) {
+    if (supabase && isSupabaseConfigured) {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: idToken
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const email = data.user?.email ?? "google-user@travio.local";
+      const profile: TravioUser = {
+        id: data.user?.id ?? `local-${email}`,
+        name: data.user?.user_metadata?.name ?? email.split("@")[0],
+        email,
+        agreement_accepted_at: agreementAcceptedAt,
+        created_at: data.user?.created_at ?? new Date().toISOString()
+      };
+      await upsertUserProfile(profile);
+      setUser(profile);
       return;
     }
 
@@ -246,6 +290,7 @@ export function AppProvider({ children }: PropsWithChildren) {
       verifyEmail,
       signInWithApple,
       signInWithGoogle,
+      signInWithGoogleIdToken,
       logout,
       selectProduct: setSelectedProduct,
       setDraft: setOrderDraft,

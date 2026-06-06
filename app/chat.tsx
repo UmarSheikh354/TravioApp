@@ -5,17 +5,22 @@ import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatComposer } from "@/components/ChatComposer";
-import { LoadingDots } from "@/components/LoadingDots";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ProductCard } from "@/components/ProductCard";
 import { Screen } from "@/components/Screen";
-import { TravioHeader } from "@/components/TravioMark";
+import { TravioHeader, TravioMark } from "@/components/TravioMark";
+import { TypingIndicator } from "@/components/TypingIndicator";
 import { useApp } from "@/context/AppContext";
 import { searchTravioProducts } from "@/services/search";
 import type { ChatMessage, ProductOption } from "@/types/travio";
 import { colors } from "@/lib/theme";
 
 const SEARCH_HISTORY_KEY = "travio.searchHistory";
+const STREAM_RESPONSE = "Here are the best options I found for you.";
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export default function AIChatScreen() {
   const { t } = useTranslation();
@@ -71,16 +76,34 @@ export default function AIChatScreen() {
     try {
       const result = await searchTravioProducts(query);
       setErrors(normalizeErrors(result.errors));
+      const assistantId = `assistant-${Date.now()}`;
+      setLoading(false);
       setMessages((current) => [
         ...current,
         {
-          id: `assistant-${Date.now()}`,
+          id: assistantId,
           role: "assistant",
-          content: "Here are 3 supplier options for your request.",
-          products: result.products,
+          content: "",
           createdAt: new Date().toISOString()
         }
       ]);
+      const words = STREAM_RESPONSE.split(" ");
+      for (let wordIndex = 0; wordIndex < words.length; wordIndex += 1) {
+        await wait(55);
+        setMessages((current) =>
+          current.map((message) =>
+            message.id === assistantId
+              ? {
+                  ...message,
+                  content: words.slice(0, wordIndex + 1).join(" ")
+                }
+              : message
+          )
+        );
+      }
+      setMessages((current) =>
+        current.map((message) => (message.id === assistantId ? { ...message, products: result.products } : message))
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : "Search failed.";
       setErrors(normalizeErrors([message]));
@@ -142,9 +165,13 @@ export default function AIChatScreen() {
             onLongPress={() => Alert.alert("Copied", message.content)}
           >
             <View style={[styles.messageHeader, message.role === "user" && styles.userMessageHeader]}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{message.role === "user" ? "•" : "◉"}</Text>
-              </View>
+              {message.role === "user" ? (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>•</Text>
+                </View>
+              ) : (
+                <TravioMark size={24} />
+              )}
               <Text style={styles.messageRole}>{message.role === "user" ? "You" : "Travio"}</Text>
             </View>
             <Text style={[styles.messageText, message.role === "user" && styles.userText]}>{message.content}</Text>
@@ -172,18 +199,7 @@ export default function AIChatScreen() {
       </View>
 
       {loading ? (
-        <View style={styles.message}>
-          <View style={styles.messageHeader}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>◉</Text>
-            </View>
-            <Text style={styles.messageRole}>Travio</Text>
-          </View>
-          <View style={styles.loadingRow}>
-            <Text style={styles.messageText}>{t("searching")}</Text>
-            <LoadingDots />
-          </View>
-        </View>
+        <TypingIndicator />
       ) : null}
 
       {errors.length > 0 ? (
@@ -237,7 +253,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1,
     flex: 1,
-    gap: 18,
+    gap: 24,
     marginTop: 14,
     padding: 16
   },
@@ -301,14 +317,14 @@ const styles = StyleSheet.create({
   },
   messageText: {
     color: colors.muted,
-    fontSize: 12,
-    lineHeight: 18,
-    paddingLeft: 26
+    fontSize: 16,
+    lineHeight: 24,
+    paddingLeft: 36
   },
   userText: {
     color: colors.text,
     paddingLeft: 0,
-    paddingRight: 26,
+    paddingRight: 36,
     textAlign: "right"
   },
   errorBox: {

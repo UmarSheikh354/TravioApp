@@ -65,9 +65,9 @@ export default function OnboardingScreen() {
       >
         {slides.map((slide, slideIndex) => (
           <View key={`${slide.type}-${slideIndex}`} style={[styles.slide, slide.type === "logoOnly" && styles.logoOnlySlide, { width: width - 44 }]}>
-            {slide.type === "logoOnly" ? <TravioMark size={74} /> : null}
-            {slide.type === "logoButtons" ? <TravioMark size={58} /> : null}
-            {slide.type === "logoTextButtons" ? <TravioMark size={58} showWordmark /> : null}
+            {slide.type === "logoOnly" ? <TravioMark size={48} /> : null}
+            {slide.type === "logoButtons" ? <TravioMark size={48} /> : null}
+            {slide.type === "logoTextButtons" ? <TravioMark size={48} showWordmark /> : null}
             {slide.type === "textButtons" && "title" in slide ? <Text style={styles.title}>{slide.title}</Text> : null}
             {slide.type === "verify" ? (
               <View style={styles.verifySlide}>

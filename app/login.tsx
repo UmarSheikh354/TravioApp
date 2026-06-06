@@ -1,19 +1,53 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import * as Google from "expo-auth-session/providers/google";
+import { useEffect, useState } from "react";
 import { Alert, StyleSheet, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AuthButtons } from "@/components/AuthButtons";
 import { Screen } from "@/components/Screen";
 import { TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
+import { env, isConfigured } from "@/lib/env";
 import { colors } from "@/lib/theme";
 
 export default function LoginScreen() {
   const { t } = useTranslation();
-  const { signInWithEmail, signInWithApple, signInWithGoogle } = useApp();
+  const { signInWithEmail, signInWithApple, signInWithGoogle, signInWithGoogleIdToken } = useApp();
   const [email, setEmail] = useState("");
   const [showEmail, setShowEmail] = useState(false);
   const [loading, setLoading] = useState<"email" | "apple" | "google" | null>(null);
+  const [, googleResponse, promptGoogle] = Google.useIdTokenAuthRequest({
+    webClientId: env.googleClientId,
+    iosClientId: env.googleClientId,
+    androidClientId: env.googleClientId,
+    selectAccount: true
+  });
+
+  useEffect(() => {
+    async function completeGoogleAuth() {
+      if (googleResponse?.type !== "success") {
+        return;
+      }
+
+      const idToken = googleResponse.params.id_token;
+      if (!idToken) {
+        Alert.alert(t("login"), "Google did not return an ID token.");
+        return;
+      }
+
+      try {
+        setLoading("google");
+        await signInWithGoogleIdToken(idToken, acceptanceTimestamp());
+        router.replace("/(tabs)");
+      } catch (error) {
+        Alert.alert(t("login"), error instanceof Error ? error.message : "Google login failed.");
+      } finally {
+        setLoading(null);
+      }
+    }
+
+    completeGoogleAuth();
+  }, [googleResponse, signInWithGoogleIdToken, t]);
 
   function acceptanceTimestamp() {
     return new Date().toISOString();
@@ -49,6 +83,10 @@ export default function LoginScreen() {
       if (provider === "apple") {
         await signInWithApple(agreementAcceptedAt);
       } else {
+        if (isConfigured(env.googleClientId)) {
+          await promptGoogle();
+          return;
+        }
         await signInWithGoogle(agreementAcceptedAt);
       }
       router.replace("/(tabs)");
@@ -63,7 +101,7 @@ export default function LoginScreen() {
     <Screen style={styles.screen}>
       <View style={styles.glow} />
       <View style={styles.center}>
-        <TravioMark size={46} showWordmark />
+        <TravioMark size={60} showWordmark />
       </View>
       <View style={styles.controls}>
         {showEmail ? (

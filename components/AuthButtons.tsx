@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   loading?: "apple" | "google" | "email" | null;
@@ -11,10 +11,12 @@ type Props = {
 export function AuthButtons({ loading, onApple, onEmail, onGoogle, onLogin }: Props) {
   return (
     <View style={styles.controls}>
-      <AuthButton title="Continue with Apple" icon="●" loading={loading === "apple"} onPress={onApple} />
-      <AuthButton title="Continue with Google" icon="G" dark loading={loading === "google"} onPress={onGoogle} />
+      {Platform.OS === "ios" ? (
+        <AuthButton title="Continue with Apple" icon="" dark loading={loading === "apple"} onPress={onApple} />
+      ) : null}
+      <AuthButton title="Continue with Google" icon="G" loading={loading === "google"} onPress={onGoogle} />
       <AuthButton title="Sign up with email" icon="✉" dark loading={loading === "email"} onPress={onEmail} />
-      <AuthButton title="Log in" outline onPress={onLogin} />
+      <AuthButton title="Log in" dark onPress={onLogin} />
     </View>
   );
 }
@@ -48,7 +50,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f7f7f7",
     borderRadius: 7,
     justifyContent: "center",
-    minHeight: 31,
+    minHeight: 40,
     paddingHorizontal: 12
   },
   authDark: {
@@ -61,7 +63,7 @@ const styles = StyleSheet.create({
   },
   authText: {
     color: "#000000",
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: "700"
   },
   authTextLight: {

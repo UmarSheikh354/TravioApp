@@ -23,7 +23,7 @@ export function ChatComposer({ disabled, loading, onAttach, onSend, onVoice, sty
         {...props}
       />
       <Pressable style={styles.micButton} onPress={onVoice}>
-        <Text style={styles.micText}>🎙</Text>
+        <Text style={styles.micText}>◉</Text>
       </Pressable>
       <Pressable style={[styles.sendButton, disabled && styles.disabled]} disabled={disabled} onPress={onSend}>
         <Text style={styles.sendText}>{loading ? "■" : "↑"}</Text>
@@ -38,12 +38,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 24,
+    borderRadius: 26,
     flexDirection: "row",
     gap: 8,
-    minHeight: 64,
-    paddingHorizontal: 14,
-    paddingVertical: 10
+    minHeight: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 12
   },
   plusButton: {
     alignItems: "center",
@@ -56,23 +56,23 @@ const styles = StyleSheet.create({
   },
   plusText: {
     color: "#a9a9a9",
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "500"
   },
   input: {
     color: colors.accentText,
     flex: 1,
-    fontSize: 13,
+    fontSize: 16,
     maxHeight: 96,
     minHeight: 38
   },
   sendButton: {
     alignItems: "center",
     backgroundColor: "#000000",
-    borderRadius: 16,
-    height: 32,
+    borderRadius: 18,
+    height: 36,
     justifyContent: "center",
-    width: 32
+    width: 36
   },
   disabled: {
     opacity: 0.5
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   },
   micText: {
     color: colors.text,
-    fontSize: 16
+    fontSize: 22
   },
   sendText: {
     color: "#ffffff",

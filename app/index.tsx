@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 import { TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
 import { colors } from "@/lib/theme";
@@ -40,7 +40,8 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <Animated.View style={{ opacity: logoOpacity, transform: [{ scale: logoScale }] }}>
-        <TravioMark size={330} />
+        <TravioMark size={80} />
+        <Text style={styles.logoText}>TRAVIO</Text>
       </Animated.View>
     </View>
   );
@@ -53,5 +54,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24
+  },
+  logoText: {
+    color: colors.text,
+    fontSize: 32,
+    fontWeight: "700",
+    letterSpacing: 4,
+    marginTop: 18,
+    textAlign: "center"
   }
 });
