@@ -28,6 +28,9 @@ export default function RootLayout() {
             <Stack.Screen name="terms-conditions" options={{ title: "Terms and Conditions" }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="chat" options={{ headerShown: false }} />
+            <Stack.Screen name="voice-intro" options={{ headerShown: false }} />
+            <Stack.Screen name="choose-voice" options={{ headerShown: false }} />
+            <Stack.Screen name="voice-call" options={{ headerShown: false }} />
             <Stack.Screen name="order-confirmation" options={{ title: "Confirm Order" }} />
             <Stack.Screen name="payment" options={{ title: "Payment" }} />
             <Stack.Screen name="order-success" options={{ title: "Order Success", headerBackVisible: false }} />

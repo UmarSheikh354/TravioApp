@@ -10,7 +10,11 @@ export const colors = {
   accentText: "#061013",
   control: "#202229",
   dangerPanel: "#261314",
-  dangerText: "#ffcdcd"
+  dangerText: "#ffcdcd",
+  sheet: "#dedede",
+  sheetCard: "#f3f3f3",
+  sheetText: "#151515",
+  sheetMuted: "#8b8b8f"
 };
 
 export const radii = {

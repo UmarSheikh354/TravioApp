@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "@/lib/theme";
 
 type Props = {
@@ -21,10 +21,31 @@ export function TravioMark({ size = 54, showWordmark = false }: Props) {
   );
 }
 
-export function TravioHeader() {
+type HeaderProps = {
+  onMenuPress?: () => void;
+  onEditPress?: () => void;
+};
+
+export function TravioHeader({ onMenuPress, onEditPress }: HeaderProps) {
+  const showActions = Boolean(onMenuPress || onEditPress);
+
   return (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>TRAVIO</Text>
+      {showActions ? (
+        <Pressable accessibilityRole="button" onPress={onMenuPress} style={styles.headerIcon}>
+          <Text style={styles.headerIconText}>≡</Text>
+        </Pressable>
+      ) : (
+        <View style={styles.headerIcon} />
+      )}
+      <Text style={styles.headerTitle}>TRAVIO ›</Text>
+      {showActions ? (
+        <Pressable accessibilityRole="button" onPress={onEditPress} style={styles.headerIcon}>
+          <Text style={styles.headerIconText}>✎</Text>
+        </Pressable>
+      ) : (
+        <View style={styles.headerIcon} />
+      )}
     </View>
   );
 }
@@ -66,12 +87,26 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: "center",
-    paddingTop: 8
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingTop: 8,
+    width: "100%"
   },
   headerTitle: {
     color: colors.text,
     fontSize: 10,
     fontWeight: "900",
     letterSpacing: 1.8
+  },
+  headerIcon: {
+    alignItems: "center",
+    height: 34,
+    justifyContent: "center",
+    width: 34
+  },
+  headerIconText: {
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: "800"
   }
 });

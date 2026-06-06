@@ -1,8 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { ChatComposer } from "@/components/ChatComposer";
 import { LoadingDots } from "@/components/LoadingDots";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ProductCard } from "@/components/ProductCard";
@@ -119,7 +120,7 @@ export default function AIChatScreen() {
 
   return (
     <Screen style={styles.screen}>
-      <TravioHeader />
+      <TravioHeader onMenuPress={() => router.push("/(tabs)/profile")} onEditPress={() => setMessages([])} />
       {messages.map((message) => (
         <View key={message.id} style={[styles.message, message.role === "user" ? styles.userMessage : styles.aiMessage]}>
           <Text style={styles.messageRole}>{message.role === "user" ? "You" : "TRAVIO"}</Text>
@@ -166,17 +167,14 @@ export default function AIChatScreen() {
       ) : null}
 
       <View style={styles.inputRow}>
-        <TextInput
+        <ChatComposer
           placeholder="Can you tell me anything, right?"
-          placeholderTextColor={colors.dim}
           value={input}
           onChangeText={setInput}
-          multiline
-          style={styles.input}
+          disabled={!input.trim() || loading}
+          loading={loading}
+          onSend={handleSearch}
         />
-        <Pressable style={[styles.sendButton, (!input.trim() || loading) && styles.disabledSend]} onPress={handleSearch} disabled={!input.trim() || loading}>
-          <Text style={styles.sendText}>{loading ? "..." : ">"}</Text>
-        </Pressable>
       </View>
     </Screen>
   );
@@ -260,36 +258,6 @@ const styles = StyleSheet.create({
     fontWeight: "700"
   },
   inputRow: {
-    alignItems: "center",
-    backgroundColor: colors.accent,
-    borderRadius: 24,
-    flexDirection: "row",
-    gap: 8,
-    marginTop: "auto",
-    minHeight: 58,
-    paddingHorizontal: 14,
-    paddingVertical: 8
-  },
-  input: {
-    color: colors.accentText,
-    flex: 1,
-    fontSize: 13,
-    maxHeight: 100,
-    minHeight: 38
-  },
-  sendButton: {
-    alignItems: "center",
-    backgroundColor: colors.background,
-    borderRadius: 18,
-    height: 36,
-    justifyContent: "center",
-    width: 36
-  },
-  disabledSend: {
-    opacity: 0.65
-  },
-  sendText: {
-    color: colors.accent,
-    fontWeight: "900"
+    marginTop: "auto"
   }
 });

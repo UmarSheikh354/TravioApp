@@ -1,7 +1,8 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { ChatComposer } from "@/components/ChatComposer";
 import { Screen } from "@/components/Screen";
 import { TravioHeader } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
@@ -24,7 +25,7 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll={false} style={styles.screen}>
-      <TravioHeader />
+      <TravioHeader onMenuPress={() => router.push("/(tabs)/profile")} onEditPress={() => router.push("/chat")} />
       <View style={styles.canvas}>
         {activeOrders.length > 0 ? (
           <View style={styles.statusCard}>
@@ -42,18 +43,7 @@ export default function HomeScreen() {
           </Pressable>
         ))}
       </View>
-      <View style={styles.chatBar}>
-        <TextInput
-          placeholder={t("chatPlaceholder")}
-          placeholderTextColor={colors.dim}
-          value={request}
-          onChangeText={setRequest}
-          style={styles.chatInput}
-        />
-        <Pressable style={styles.sendButton} onPress={() => openChat(request)} disabled={!request.trim()}>
-          <Text style={styles.sendText}>{">"}</Text>
-        </Pressable>
-      </View>
+      <ChatComposer value={request} onChangeText={setRequest} placeholder={t("chatPlaceholder")} disabled={!request.trim()} onSend={() => openChat(request)} />
     </Screen>
   );
 }
@@ -83,34 +73,6 @@ const styles = StyleSheet.create({
   statusText: {
     color: colors.muted,
     fontSize: 11
-  },
-  chatBar: {
-    alignItems: "center",
-    backgroundColor: colors.accent,
-    borderRadius: 24,
-    flexDirection: "row",
-    gap: 8,
-    minHeight: 58,
-    paddingHorizontal: 14,
-    paddingVertical: 8
-  },
-  chatInput: {
-    color: colors.accentText,
-    flex: 1,
-    fontSize: 13,
-    minHeight: 40
-  },
-  sendButton: {
-    alignItems: "center",
-    backgroundColor: colors.background,
-    borderRadius: 18,
-    height: 36,
-    justifyContent: "center",
-    width: 36
-  },
-  sendText: {
-    color: colors.accent,
-    fontWeight: "900"
   },
   quickRow: {
     flexDirection: "row",

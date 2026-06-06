@@ -1,9 +1,9 @@
 import { router } from "expo-router";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { useApp } from "@/context/AppContext";
+import { colors } from "@/lib/theme";
 import type { SupportedLanguage } from "@/types/travio";
 
 const languages: { label: string; value: SupportedLanguage }[] = [
@@ -26,117 +26,166 @@ export default function ProfileScreen() {
   }
 
   return (
-    <Screen>
-      <Text style={styles.title}>{t("profile")}</Text>
-      <View style={styles.card}>
-        <Text style={styles.name}>{user?.name ?? "Guest"}</Text>
-        <Text style={styles.email}>{user?.email ?? "guest@travio.local"}</Text>
-        {user?.phone ? <Text style={styles.email}>{user.phone}</Text> : null}
-        {user?.agreement_accepted_at ? (
-          <Text style={styles.meta}>Agreement accepted: {new Date(user.agreement_accepted_at).toLocaleString()}</Text>
-        ) : null}
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>{t("language")}</Text>
-        <View style={styles.languageRow}>
-          {languages.map((item) => (
-            <Pressable
-              key={item.value}
-              onPress={() => setLanguage(item.value)}
-              style={[styles.languagePill, language === item.value && styles.activeLanguage]}
-            >
-              <Text style={[styles.languageText, language === item.value && styles.activeLanguageText]}>
-                {item.label}
-              </Text>
-            </Pressable>
-          ))}
+    <Screen style={styles.screen}>
+      <View style={styles.sheet}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Settings</Text>
+          <Pressable style={styles.close} onPress={() => router.replace("/(tabs)")}>
+            <Text style={styles.closeText}>×</Text>
+          </Pressable>
         </View>
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Backend status</Text>
-        <Text style={styles.statusText}>
-          Add real values to .env to enable Claude, marketplace APIs, Stripe PaymentIntent, and Supabase database writes.
-        </Text>
-      </View>
+        <Text style={styles.sectionLabel}>ACCOUNT</Text>
+        <View style={styles.group}>
+          <SettingsRow icon="✉" label="Email" value={user?.email ?? "guest@travio.local"} />
+          <SettingsRow icon="⊞" label="Subscription" value="Travio Plus" />
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Legal</Text>
-        <Pressable onPress={() => router.push("/terms-conditions")}>
-          <Text style={styles.link}>Terms and Conditions</Text>
+        <View style={styles.group}>
+          <SettingsRow icon="▣" label="Data Controls" value="›" />
+          <SettingsRow icon="▤" label="Archived Chats" value="›" onPress={() => router.push("/(tabs)/orders")} />
+          <SettingsRow icon="▯" label="Custom instructions" value="On ›" />
+        </View>
+
+        <Text style={styles.sectionLabel}>APP</Text>
+        <View style={styles.group}>
+          <SettingsRow icon="☼" label="Color Scheme" value="System ↕" />
+          <View style={styles.row}>
+            <Text style={styles.rowIcon}>▯</Text>
+            <Text style={styles.rowLabel}>Haptic Feedback</Text>
+            <Switch value trackColor={{ true: "#34c759", false: "#c9c9c9" }} thumbColor="#ffffff" />
+          </View>
+        </View>
+
+        <Text style={styles.sectionLabel}>SPEECH</Text>
+        <View style={styles.group}>
+          <SettingsRow icon="≋" label="Voice" value="Breeze ›" onPress={() => router.push("/voice-intro")} />
+          <SettingsRow
+            icon="◎"
+            label="Main Language"
+            value={`${languages.find((item) => item.value === language)?.label ?? "Auto-Detect"} ↕`}
+            onPress={() => setLanguage(language === "en" ? "ur" : language === "ur" ? "ar" : "en")}
+          />
+        </View>
+        <Text style={styles.note}>For best results, select the language you mainly speak.</Text>
+
+        <Text style={styles.sectionLabel}>ABOUT</Text>
+        <View style={styles.group}>
+          <SettingsRow icon="?" label="Help Center" />
+          <SettingsRow icon="▤" label="Terms of Use" onPress={() => router.push("/terms-conditions")} />
+          <SettingsRow icon="▣" label="Privacy Policy" onPress={() => router.push("/privacy-policy")} />
+          <SettingsRow icon="●" label="TRAVIO for iOS" value="1.0.0" />
+        </View>
+
+        <Pressable style={styles.logoutRow} onPress={handleLogout}>
+          <Text style={styles.rowIcon}>↪</Text>
+          <Text style={styles.rowLabel}>{t("logout")}</Text>
         </Pressable>
-        <Pressable onPress={() => router.push("/privacy-policy")}>
-          <Text style={styles.link}>Privacy Policy</Text>
-        </Pressable>
       </View>
-
-      <PrimaryButton title={t("logout")} variant="secondary" onPress={handleLogout} />
     </Screen>
   );
 }
 
+type SettingsRowProps = {
+  icon: string;
+  label: string;
+  value?: string;
+  onPress?: () => void;
+};
+
+function SettingsRow({ icon, label, value, onPress }: SettingsRowProps) {
+  return (
+    <Pressable style={styles.row} onPress={onPress} disabled={!onPress}>
+      <Text style={styles.rowIcon}>{icon}</Text>
+      <Text style={styles.rowLabel}>{label}</Text>
+      {value ? <Text style={styles.rowValue}>{value}</Text> : null}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  title: {
-    color: "#fff",
-    fontSize: 30,
-    fontWeight: "900"
+  screen: {
+    backgroundColor: colors.sheet,
+    paddingHorizontal: 12,
+    paddingVertical: 20
   },
-  card: {
-    backgroundColor: "#0f1728",
-    borderColor: "#24304a",
-    borderRadius: 22,
-    borderWidth: 1,
-    gap: 10,
+  sheet: {
+    backgroundColor: colors.sheet,
+    borderRadius: 34,
+    flex: 1,
+    gap: 11,
     padding: 16
   },
-  name: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "900"
-  },
-  email: {
-    color: "#9aa7bd"
-  },
-  meta: {
-    color: "#c5ccdc",
-    fontSize: 13
-  },
-  sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "800"
-  },
-  languageRow: {
+  header: {
+    alignItems: "center",
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10
+    justifyContent: "center",
+    minHeight: 34
   },
-  languagePill: {
-    borderColor: "#2c3448",
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10
-  },
-  activeLanguage: {
-    backgroundColor: "#21d4a2",
-    borderColor: "#21d4a2"
-  },
-  languageText: {
-    color: "#d7deee",
-    fontWeight: "700"
-  },
-  activeLanguageText: {
-    color: "#05070d"
-  },
-  statusText: {
-    color: "#c5ccdc",
-    lineHeight: 22
-  },
-  link: {
-    color: "#21d4a2",
+  headerTitle: {
+    color: colors.sheetText,
     fontSize: 16,
     fontWeight: "800"
+  },
+  close: {
+    alignItems: "center",
+    backgroundColor: "#cfcfd2",
+    borderRadius: 12,
+    height: 24,
+    justifyContent: "center",
+    position: "absolute",
+    right: 0,
+    width: 24
+  },
+  closeText: {
+    color: "#9d9da3",
+    fontWeight: "900"
+  },
+  sectionLabel: {
+    color: colors.sheetMuted,
+    fontSize: 10,
+    fontWeight: "800",
+    marginTop: 6
+  },
+  group: {
+    backgroundColor: colors.sheetCard,
+    borderRadius: 9,
+    overflow: "hidden"
+  },
+  row: {
+    alignItems: "center",
+    borderBottomColor: "#dfdfe2",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    minHeight: 38,
+    paddingHorizontal: 12
+  },
+  rowIcon: {
+    color: colors.sheetText,
+    fontSize: 15,
+    width: 24
+  },
+  rowLabel: {
+    color: colors.sheetText,
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "500"
+  },
+  rowValue: {
+    color: colors.sheetMuted,
+    fontSize: 12
+  },
+  note: {
+    color: colors.sheetMuted,
+    fontSize: 10,
+    lineHeight: 13
+  },
+  logoutRow: {
+    alignItems: "center",
+    backgroundColor: colors.sheetCard,
+    borderRadius: 9,
+    flexDirection: "row",
+    minHeight: 38,
+    paddingHorizontal: 12
   }
 });

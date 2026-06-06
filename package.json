@@ -28,6 +28,7 @@
     "expo-constants": "~56.0.17",
     "expo-device": "~56.0.4",
     "expo-font": "^56.0.5",
+    "expo-linear-gradient": "~56.0.4",
     "expo-linking": "~56.0.13",
     "expo-localization": "~56.0.6",
     "expo-notifications": "~56.0.16",
