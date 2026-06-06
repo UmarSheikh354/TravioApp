@@ -12,7 +12,7 @@ import { TravioHeader } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
 import { searchTravioProducts } from "@/services/search";
 import type { ChatMessage, ProductOption } from "@/types/travio";
-import { colors, radii } from "@/lib/theme";
+import { colors } from "@/lib/theme";
 
 const SEARCH_HISTORY_KEY = "travio.searchHistory";
 
@@ -23,14 +23,7 @@ export default function AIChatScreen() {
   const initialQuery = typeof params.q === "string" ? params.q : "";
   const ranInitialQuery = useRef(false);
   const [input, setInput] = useState(initialQuery);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: "Tell me what product you want. I will compare Alibaba, Amazon, and Temu.",
-      createdAt: new Date().toISOString()
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [lastQuery, setLastQuery] = useState("");
@@ -121,19 +114,31 @@ export default function AIChatScreen() {
   return (
     <Screen style={styles.screen}>
       <TravioHeader onMenuPress={() => router.push("/(tabs)/profile")} onEditPress={() => setMessages([])} />
-      {messages.map((message) => (
-        <View key={message.id} style={[styles.message, message.role === "user" ? styles.userMessage : styles.aiMessage]}>
-          <Text style={styles.messageRole}>{message.role === "user" ? "You" : "TRAVIO"}</Text>
-          <Text style={[styles.messageText, message.role === "user" && styles.userMessageText]}>{message.content}</Text>
-          {message.products?.map((product) => (
-            <ProductCard key={`${product.supplier}-${product.name}`} product={product} onConfirm={confirm} />
-          ))}
-        </View>
-      ))}
+      <View style={styles.timeline}>
+        {messages.map((message) => (
+          <View key={message.id} style={styles.message}>
+            <View style={styles.messageHeader}>
+              <View style={[styles.avatar, message.role === "user" && styles.userAvatar]}>
+                <Text style={styles.avatarText}>{message.role === "user" ? "•" : "◉"}</Text>
+              </View>
+              <Text style={styles.messageRole}>{message.role === "user" ? "You" : "Travio"}</Text>
+            </View>
+            <Text style={styles.messageText}>{message.content}</Text>
+            {message.products?.map((product) => (
+              <ProductCard key={`${product.supplier}-${product.name}`} product={product} onConfirm={confirm} />
+            ))}
+          </View>
+        ))}
+      </View>
 
       {loading ? (
-        <View style={[styles.message, styles.aiMessage]}>
-          <Text style={styles.messageRole}>TRAVIO</Text>
+        <View style={styles.message}>
+          <View style={styles.messageHeader}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>◉</Text>
+            </View>
+            <Text style={styles.messageRole}>Travio</Text>
+          </View>
           <View style={styles.loadingRow}>
             <Text style={styles.messageText}>{t("searching")}</Text>
             <LoadingDots />
@@ -184,33 +189,44 @@ const styles = StyleSheet.create({
   screen: {
     paddingBottom: 16
   },
+  timeline: {
+    gap: 18,
+    paddingTop: 14
+  },
   message: {
-    borderRadius: radii.card,
-    gap: 12,
-    padding: 14,
-    width: "92%"
+    gap: 6,
+    width: "100%"
   },
-  userMessage: {
-    alignSelf: "flex-end",
-    backgroundColor: colors.accent
+  messageHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8
   },
-  aiMessage: {
-    alignSelf: "flex-start",
-    backgroundColor: colors.panel
+  avatar: {
+    alignItems: "center",
+    height: 18,
+    justifyContent: "center",
+    width: 18
+  },
+  userAvatar: {
+    borderRadius: 9,
+    overflow: "hidden"
+  },
+  avatarText: {
+    color: colors.muted,
+    fontSize: 11,
+    fontWeight: "900"
   },
   messageRole: {
-    color: colors.accent,
-    fontSize: 10,
-    fontWeight: "900",
-    textTransform: "uppercase"
+    color: colors.text,
+    fontSize: 11,
+    fontWeight: "800"
   },
   messageText: {
     color: colors.text,
-    fontSize: 13,
-    lineHeight: 20
-  },
-  userMessageText: {
-    color: colors.accentText
+    fontSize: 12,
+    lineHeight: 18,
+    paddingLeft: 26
   },
   errorBox: {
     backgroundColor: colors.dangerPanel,

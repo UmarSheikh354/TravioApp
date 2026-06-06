@@ -12,7 +12,7 @@ export default function ChooseVoiceScreen() {
   const [selected, setSelected] = useState("Juniper");
 
   return (
-    <Screen scroll={false} style={styles.screen}>
+    <Screen backgroundColor="#f9f9f9" scroll={false} style={styles.screen}>
       <Pressable style={styles.close} onPress={() => router.back()}>
         <Text style={styles.closeText}>×</Text>
       </Pressable>

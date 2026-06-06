@@ -4,16 +4,17 @@ import type { PropsWithChildren } from "react";
 import { colors } from "@/lib/theme";
 
 type Props = PropsWithChildren<{
+  backgroundColor?: string;
   scroll?: boolean;
   refreshControl?: ScrollViewProps["refreshControl"];
   style?: ViewStyle;
 }>;
 
-export function Screen({ children, scroll = true, refreshControl, style }: Props) {
+export function Screen({ backgroundColor, children, scroll = true, refreshControl, style }: Props) {
   const content = <View style={[styles.content, style]}>{children}</View>;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, backgroundColor ? { backgroundColor } : null]}>
       {scroll ? (
         <ScrollView
           contentContainerStyle={styles.scrollContent}

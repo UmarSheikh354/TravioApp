@@ -57,9 +57,9 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     color: colors.text,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "900",
-    letterSpacing: 1.8
+    letterSpacing: 0.4
   },
   mark: {
     alignItems: "center",
@@ -94,9 +94,9 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: colors.text,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "900",
-    letterSpacing: 1.8
+    letterSpacing: 0.7
   },
   headerIcon: {
     alignItems: "center",

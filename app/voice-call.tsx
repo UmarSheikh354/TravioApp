@@ -5,7 +5,7 @@ import { VoiceOrb } from "@/components/VoiceOrb";
 
 export default function VoiceCallScreen() {
   return (
-    <Screen scroll={false} style={styles.screen}>
+    <Screen backgroundColor="#ffffff" scroll={false} style={styles.screen}>
       <View />
       <VoiceOrb size={188} />
       <View style={styles.controls}>

@@ -1,6 +1,5 @@
 import { router } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
-import { PrimaryButton } from "@/components/PrimaryButton";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { colors } from "@/lib/theme";
 
@@ -28,7 +27,9 @@ export default function VoiceIntroScreen() {
           ))}
         </View>
       </View>
-      <PrimaryButton title="Choose a voice" onPress={() => router.push("/choose-voice")} />
+      <Pressable style={styles.chooseButton} onPress={() => router.push("/choose-voice")}>
+        <Text style={styles.chooseText}>Choose a voice</Text>
+      </Pressable>
     </Screen>
   );
 }
@@ -72,5 +73,17 @@ const styles = StyleSheet.create({
     color: "#bebec4",
     fontSize: 13,
     lineHeight: 18
+  },
+  chooseButton: {
+    alignItems: "center",
+    backgroundColor: "#9b9b9f",
+    borderRadius: 9,
+    minHeight: 44,
+    justifyContent: "center"
+  },
+  chooseText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: "800"
   }
 });

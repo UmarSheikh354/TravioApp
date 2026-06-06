@@ -4,21 +4,21 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
-import { TravioHeader, TravioMark } from "@/components/TravioMark";
+import { TravioMark } from "@/components/TravioMark";
 import { colors } from "@/lib/theme";
 
 const slides = [
   {
-    title: "Describe any product",
-    body: "Tell Travio what you need, including quantity, budget, delivery location, or quality requirements."
+    title: "TRAVIO",
+    body: ""
   },
   {
-    title: "Compare 3 suppliers",
-    body: "Travio searches Alibaba, Amazon, and Temu and turns results into clear product cards."
+    title: "Your AI\nShopping\nCompanion",
+    body: ""
   },
   {
-    title: "Pay and track",
-    body: "Confirm your details, pay with Stripe, and keep order status in one place."
+    title: "“Smart Personal\nRecommendation”",
+    body: ""
   }
 ];
 
@@ -38,16 +38,12 @@ export default function OnboardingScreen() {
 
   return (
     <Screen scroll={false} style={styles.screen}>
-      <TravioHeader />
       <View style={styles.hero}>
-        <TravioMark size={46} />
-        <Text style={styles.counter}>
-          {index + 1}/{slides.length}
-        </Text>
+        <TravioMark size={42} showWordmark={index === 0} />
       </View>
-      <View style={styles.card}>
+      <View style={[styles.card, !slide.body && styles.emptyCard]}>
         <Text style={styles.title}>{slide.title}</Text>
-        <Text style={styles.body}>{slide.body}</Text>
+        {slide.body ? <Text style={styles.body}>{slide.body}</Text> : null}
       </View>
       <View style={styles.dots}>
         {slides.map((_, slideIndex) => (
@@ -67,26 +63,23 @@ const styles = StyleSheet.create({
   hero: {
     alignItems: "center",
     gap: 14,
-    marginTop: 42
-  },
-  counter: {
-    color: colors.muted,
-    fontWeight: "700"
+    marginTop: 110
   },
   card: {
-    backgroundColor: colors.panel,
-    borderColor: colors.border,
-    borderRadius: 28,
-    borderWidth: 1,
+    backgroundColor: "transparent",
     gap: 16,
-    minHeight: 230,
+    minHeight: 130,
     justifyContent: "center",
     padding: 28
   },
+  emptyCard: {
+    marginTop: -30
+  },
   title: {
     color: colors.text,
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "900",
+    lineHeight: 24,
     textAlign: "center"
   },
   body: {

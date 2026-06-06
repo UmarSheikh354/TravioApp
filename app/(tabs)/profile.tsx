@@ -26,7 +26,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <Screen style={styles.screen}>
+    <Screen backgroundColor={colors.sheet} style={styles.screen}>
       <View style={styles.sheet}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Settings</Text>

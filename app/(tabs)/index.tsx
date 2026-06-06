@@ -14,6 +14,7 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const { orders } = useApp();
   const [request, setRequest] = useState("");
+  const [showMenu, setShowMenu] = useState(false);
   const activeOrders = orders.filter((order) => !["delivered", "cancelled"].includes(order.status));
   const recentOrders = orders.slice(0, 3);
 
@@ -25,7 +26,19 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll={false} style={styles.screen}>
-      <TravioHeader onMenuPress={() => router.push("/(tabs)/profile")} onEditPress={() => router.push("/chat")} />
+      <TravioHeader onMenuPress={() => setShowMenu((value) => !value)} onEditPress={() => router.push("/chat")} />
+      {showMenu ? (
+        <View style={styles.planMenu}>
+          <Pressable style={styles.planRow} onPress={() => router.push("/(tabs)/profile")}>
+            <Text style={styles.planText}>TRAVIO PLUS</Text>
+            <Text style={styles.planIcon}>ϟ</Text>
+          </Pressable>
+          <Pressable style={styles.planRow} onPress={() => setShowMenu(false)}>
+            <Text style={styles.planText}>✓ TRAVIO</Text>
+            <Text style={styles.planIcon}>✦</Text>
+          </Pressable>
+        </View>
+      ) : null}
       <View style={styles.canvas}>
         {activeOrders.length > 0 ? (
           <View style={styles.statusCard}>
@@ -56,6 +69,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "flex-end",
     paddingBottom: 16
+  },
+  planMenu: {
+    alignSelf: "center",
+    backgroundColor: "#9b9b9f",
+    borderRadius: 9,
+    marginTop: 10,
+    overflow: "hidden",
+    width: 190
+  },
+  planRow: {
+    alignItems: "center",
+    borderBottomColor: "rgba(0,0,0,0.16)",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 38,
+    paddingHorizontal: 16
+  },
+  planText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: "700"
+  },
+  planIcon: {
+    color: colors.text,
+    fontSize: 20
   },
   statusCard: {
     backgroundColor: colors.panel,

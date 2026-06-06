@@ -2,10 +2,9 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
 import { TextField } from "@/components/TextField";
-import { TravioHeader, TravioMark } from "@/components/TravioMark";
+import { TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
 import { colors } from "@/lib/theme";
 
@@ -14,6 +13,7 @@ export default function LoginScreen() {
   const { signInWithEmail, signInWithApple, signInWithGoogle } = useApp();
   const [email, setEmail] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
   const [loading, setLoading] = useState<"email" | "apple" | "google" | null>(null);
 
   function acceptanceTimestamp() {
@@ -56,31 +56,23 @@ export default function LoginScreen() {
 
   return (
     <Screen style={styles.screen}>
-      <TravioHeader />
       <View style={styles.center}>
-        <TravioMark size={42} />
+        <TravioMark size={42} showWordmark />
         <Text style={styles.title}>Your AI{"\n"}Shopping{"\n"}Companion</Text>
       </View>
       <View style={styles.controls}>
-        <PrimaryButton
-          title={t("continueWithApple")}
-          loading={loading === "apple"}
-          disabled={!agreed}
-          onPress={() => handleSocial("apple")}
-        />
-        <PrimaryButton
-          title={t("continueWithGoogle")}
-          loading={loading === "google"}
-          disabled={!agreed}
-          onPress={() => handleSocial("google")}
-        />
-        <TextField
-          label={t("email")}
-          keyboardType="email-address"
-          placeholder="Enter email address"
-          value={email}
-          onChangeText={setEmail}
-        />
+        <AuthButton title={t("continueWithApple")} icon="●" loading={loading === "apple"} onPress={() => handleSocial("apple")} />
+        <AuthButton title={t("continueWithGoogle")} icon="G" dark loading={loading === "google"} onPress={() => handleSocial("google")} />
+        <AuthButton title="Sign up with email" icon="✉" dark onPress={() => setShowEmail((value) => !value)} />
+        {showEmail ? (
+          <TextField
+            label={t("email")}
+            keyboardType="email-address"
+            placeholder="Enter email address"
+            value={email}
+            onChangeText={setEmail}
+          />
+        ) : null}
         <Pressable style={styles.agreementRow} onPress={() => setAgreed((value) => !value)}>
           <View style={[styles.checkbox, agreed && styles.checked]}>
             {agreed ? <Text style={styles.checkmark}>✓</Text> : null}
@@ -96,15 +88,28 @@ export default function LoginScreen() {
             <Text style={styles.link}>Privacy</Text>
           </Pressable>
         </View>
-        <PrimaryButton
-          title={t("login")}
-          variant="secondary"
-          loading={loading === "email"}
-          disabled={!email.includes("@") || !agreed}
-          onPress={handleEmail}
-        />
+        <AuthButton title={t("login")} outline loading={loading === "email"} onPress={handleEmail} />
       </View>
     </Screen>
+  );
+}
+
+type AuthButtonProps = {
+  title: string;
+  icon?: string;
+  dark?: boolean;
+  outline?: boolean;
+  loading?: boolean;
+  onPress: () => void;
+};
+
+function AuthButton({ title, icon, dark, outline, loading, onPress }: AuthButtonProps) {
+  return (
+    <Pressable style={[styles.authButton, dark && styles.authDark, outline && styles.authOutline]} onPress={onPress}>
+      <Text style={[styles.authText, (dark || outline) && styles.authTextLight]}>
+        {loading ? "..." : icon ? `${icon}  ${title}` : title}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -117,7 +122,7 @@ const styles = StyleSheet.create({
     gap: 18
   },
   controls: {
-    gap: 8,
+    gap: 7,
     paddingBottom: 8
   },
   title: {
@@ -154,7 +159,7 @@ const styles = StyleSheet.create({
     color: colors.muted,
     flex: 1,
     fontSize: 11,
-    lineHeight: 20
+    lineHeight: 14
   },
   linkRow: {
     flexDirection: "row",
@@ -168,5 +173,29 @@ const styles = StyleSheet.create({
   },
   separator: {
     color: colors.dim
+  },
+  authButton: {
+    alignItems: "center",
+    backgroundColor: "#f7f7f7",
+    borderRadius: 7,
+    minHeight: 31,
+    justifyContent: "center",
+    paddingHorizontal: 12
+  },
+  authDark: {
+    backgroundColor: "#2b2b2d"
+  },
+  authOutline: {
+    backgroundColor: "transparent",
+    borderColor: "#202020",
+    borderWidth: 1
+  },
+  authText: {
+    color: "#000000",
+    fontSize: 11,
+    fontWeight: "700"
+  },
+  authTextLight: {
+    color: "#ffffff"
   }
 });
