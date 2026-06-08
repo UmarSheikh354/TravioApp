@@ -8,7 +8,7 @@ import { TravioHeader, TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
 import { colors, radii } from "@/lib/theme";
 
-const suggestions = ["Find me a product", "Compare prices", "Best deals today", "Track my order"];
+const suggestions = ["🔎 Find me a product", "⚖️ Compare prices", "⚡ Best deals today", "🌐 Search Alibaba"];
 
 export default function HomeScreen() {
   const { orders } = useApp();

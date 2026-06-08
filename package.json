@@ -17,6 +17,7 @@
     "submit:android": "npx eas-cli submit --platform android --profile production"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@stripe/stripe-react-native": "0.64.0",
     "@supabase/supabase-js": "^2.107.0",
@@ -25,6 +26,8 @@
     "expo": "~56.0.9",
     "expo-apple-authentication": "~56.0.4",
     "expo-auth-session": "~56.0.13",
+    "expo-av": "^16.0.8",
+    "expo-camera": "~56.0.7",
     "expo-constants": "~56.0.17",
     "expo-device": "~56.0.4",
     "expo-font": "^56.0.5",
@@ -58,5 +61,15 @@
     "eslint": "^9.0.0",
     "eslint-config-expo": "~56.0.4",
     "typescript": "^6.0.3"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "expo-av",
+          "expo-modules-jsi"
+        ]
+      }
+    }
   }
 }

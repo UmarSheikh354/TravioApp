@@ -13,6 +13,18 @@ export type ProductOption = {
   category?: string;
   image_url?: string;
   availability?: string;
+  cashback_percent?: number;
+  coupon?: string;
+  price_history?: number[];
+  product_url?: string;
+  quality_score?: number;
+  rating?: number;
+  return_policy?: string;
+  reviews_count?: number;
+  seller_badge?: "new" | "trusted" | "verified";
+  seller_rating?: number;
+  seller_years_active?: number;
+  safety_score?: number;
 };
 
 export type ChatMessage = {

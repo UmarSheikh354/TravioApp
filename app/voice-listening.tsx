@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Audio } from "expo-av";
 import { Screen } from "@/components/Screen";
 import { colors } from "@/lib/theme";
 
@@ -8,6 +9,7 @@ const bars = [24, 46, 68, 38, 58, 30, 74, 42, 54];
 
 export default function VoiceListeningScreen() {
   useEffect(() => {
+    Audio.requestPermissionsAsync().catch(() => undefined);
     const timeout = setTimeout(() => {
       router.replace({ pathname: "/chat", params: { q: "Find me the best product deals today" } });
     }, 3500);

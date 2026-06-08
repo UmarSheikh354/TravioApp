@@ -12,7 +12,9 @@
       "bundleIdentifier": "com.travio.app",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Travio does not use the camera yet.",
+        "NSCameraUsageDescription": "Travio uses the camera for visual product search, barcode scanning, and QR product links.",
+        "NSMicrophoneUsageDescription": "Travio uses the microphone for voice product search.",
+        "NSPhotoLibraryUsageDescription": "Travio uses photo access for screenshot and image product search.",
         "NSLocationWhenInUseUsageDescription": "Travio may use location later to improve delivery estimates."
       }
     },
@@ -24,7 +26,10 @@
         "backgroundColor": "#05070d"
       },
       "permissions": [
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_MEDIA_IMAGES"
       ]
     },
     "web": {

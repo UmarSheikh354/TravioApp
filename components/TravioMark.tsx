@@ -1,4 +1,5 @@
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 
 type Props = {
@@ -28,7 +29,7 @@ export function TravioHeader({ onMenuPress, onEditPress, onTitlePress }: HeaderP
     <View style={styles.header}>
       {showActions ? (
         <Pressable accessibilityRole="button" onPress={onMenuPress} style={styles.headerIcon}>
-          <Text style={styles.headerIconText}>≡</Text>
+          <Feather name="menu" size={24} color={colors.text} />
         </Pressable>
       ) : (
         <View style={styles.headerIcon} />
@@ -39,7 +40,7 @@ export function TravioHeader({ onMenuPress, onEditPress, onTitlePress }: HeaderP
       </Pressable>
       {showActions ? (
         <Pressable accessibilityRole="button" onPress={onEditPress} style={styles.headerIcon}>
-          <Text style={styles.headerIconText}>✎</Text>
+          <Feather name="edit-3" size={24} color={colors.text} />
         </Pressable>
       ) : (
         <View style={styles.headerIcon} />
@@ -89,13 +90,8 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     alignItems: "center",
-    height: 24,
+    height: 44,
     justifyContent: "center",
-    width: 24
-  },
-  headerIconText: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: "800"
+    width: 44
   }
 });

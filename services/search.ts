@@ -1,5 +1,6 @@
 import { askClaudeForProducts } from "@/services/claude";
 import { searchMarketplaces, searchRealTimeProducts } from "@/services/marketplaces";
+import { applySmartFilters, parseSmartSearch } from "@/services/smartSearch";
 import type { ProductOption, Supplier } from "@/types/travio";
 
 const suppliers: Supplier[] = ["Alibaba", "Amazon", "Temu"];
@@ -30,12 +31,14 @@ function fallbackProducts(query: string, existing: ProductOption[]): ProductOpti
 }
 
 export async function searchTravioProducts(query: string) {
-  const { products: realTimeProducts, error: realTimeError } = await searchRealTimeProducts(query);
+  const intent = parseSmartSearch(query);
+  const { products: realTimeProducts, error: realTimeError } = await searchRealTimeProducts(intent.query);
   const realTimeErrors = realTimeError ? [realTimeError] : [];
 
   if (realTimeProducts.length > 0) {
+    const filteredProducts = applySmartFilters(realTimeProducts, intent);
     return {
-      products: realTimeProducts.slice(0, 6),
+      products: (filteredProducts.length > 0 ? filteredProducts : realTimeProducts).slice(0, 6),
       errors: realTimeErrors
     };
   }

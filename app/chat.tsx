@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ChatComposer } from "@/components/ChatComposer";
@@ -175,9 +175,13 @@ export default function AIChatScreen() {
               <Text style={styles.messageRole}>{message.role === "user" ? "You" : "Travio"}</Text>
             </View>
             <Text style={[styles.messageText, message.role === "user" && styles.userText]}>{message.content}</Text>
-            {message.products?.map((product) => (
-              <ProductCard key={`${product.supplier}-${product.name}`} product={product} onConfirm={confirm} />
-            ))}
+            {message.products?.length ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.productRow}>
+                {message.products.map((product) => (
+                  <ProductCard key={`${product.supplier}-${product.name}`} product={product} onConfirm={confirm} />
+                ))}
+              </ScrollView>
+            ) : null}
             {message.role === "assistant" ? (
               <View style={styles.feedbackRow}>
                 <Pressable onPress={() => Alert.alert("Feedback", "Thanks for the thumbs up.")}>
@@ -385,5 +389,10 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontSize: 12,
     fontWeight: "700"
+  },
+  productRow: {
+    gap: 12,
+    paddingLeft: 36,
+    paddingVertical: 8
   }
 });

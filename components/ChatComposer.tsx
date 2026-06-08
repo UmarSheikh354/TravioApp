@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, TextInput, type TextInputProps, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, type TextInputProps, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 
 type Props = TextInputProps & {
@@ -13,7 +14,7 @@ export function ChatComposer({ disabled, loading, onAttach, onSend, onVoice, sty
   return (
     <View style={styles.composer}>
       <Pressable style={styles.plusButton} onPress={onAttach}>
-        <Text style={styles.plusText}>+</Text>
+        <Feather name="plus" size={18} color={colors.text} />
       </Pressable>
       <TextInput
         placeholder="Search for any product..."
@@ -23,10 +24,10 @@ export function ChatComposer({ disabled, loading, onAttach, onSend, onVoice, sty
         {...props}
       />
       <Pressable style={styles.micButton} onPress={onVoice}>
-        <Text style={styles.micText}>◉</Text>
+        <Feather name="mic" size={18} color={colors.text} />
       </Pressable>
       <Pressable style={[styles.sendButton, disabled && styles.disabled]} disabled={disabled} onPress={onSend}>
-        <Text style={styles.sendText}>{loading ? "■" : "↑"}</Text>
+        <Feather name={loading ? "square" : "arrow-up"} size={18} color="#FFFFFF" />
       </Pressable>
     </View>
   );
@@ -54,11 +55,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 28
   },
-  plusText: {
-    color: "#a9a9a9",
-    fontSize: 22,
-    fontWeight: "500"
-  },
   input: {
     color: colors.accentText,
     flex: 1,
@@ -83,13 +79,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 28
   },
-  micText: {
-    color: colors.text,
-    fontSize: 22
-  },
-  sendText: {
-    color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "900"
-  }
 });

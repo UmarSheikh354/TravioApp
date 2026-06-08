@@ -1,5 +1,6 @@
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
+import { Feather } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 import { useApp } from "@/context/AppContext";
 
@@ -30,13 +31,30 @@ export function AppSidebar({ visible, onClose, onNewChat }: Props) {
               router.push("/chat");
             }}
           >
-            <Text style={styles.newChatText}>＋ New Chat</Text>
+            <Feather name="plus" size={18} color={colors.inverseText} />
+            <Text style={styles.newChatText}>New Chat</Text>
           </Pressable>
-          <TextInput placeholder="Search chats" placeholderTextColor="#777" style={styles.search} />
+          <View style={styles.searchWrap}>
+            <Feather name="search" size={16} color={colors.muted} />
+            <TextInput placeholder="Search chats..." placeholderTextColor="#777" style={styles.search} />
+          </View>
           <SidebarSection title="Today" items={["Find wireless earbuds", "Compare smart watches"]} />
           <SidebarSection title="Yesterday" items={["Best deals today", "Search Alibaba suppliers"]} />
           <SidebarSection title="Previous" items={["Office chairs under $100", "Phone cases bulk order"]} />
-          <SidebarSection title="Saved Products" items={["Saved product grid"]} onItemPress={() => router.push("/saved")} />
+          <SidebarSection
+            title="Travio Tools"
+            items={["Smart Search", "Visual Search", "Cart", "Analytics", "Saved Products"]}
+            onItemPress={(item) => {
+              const routeMap: Record<string, "/smart-search" | "/visual-search" | "/cart" | "/analytics" | "/saved"> = {
+                Analytics: "/analytics",
+                Cart: "/cart",
+                "Saved Products": "/saved",
+                "Smart Search": "/smart-search",
+                "Visual Search": "/visual-search"
+              };
+              router.push(routeMap[item]);
+            }}
+          />
 
           <View style={styles.footer}>
             <Pressable style={styles.footerRow} onPress={() => router.push("/(tabs)/profile")}>
@@ -62,12 +80,12 @@ export function AppSidebar({ visible, onClose, onNewChat }: Props) {
   );
 }
 
-function SidebarSection({ title, items, onItemPress }: { title: string; items: string[]; onItemPress?: () => void }) {
+function SidebarSection({ title, items, onItemPress }: { title: string; items: string[]; onItemPress?: (item: string) => void }) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {items.map((item) => (
-        <Pressable key={item} style={styles.item} onPress={onItemPress}>
+        <Pressable key={item} style={styles.item} onPress={() => onItemPress?.(item)}>
           <Text style={styles.itemText}>{item}</Text>
         </Pressable>
       ))}
@@ -86,15 +104,19 @@ const styles = StyleSheet.create({
     paddingBottom: 18,
     paddingHorizontal: 16,
     paddingTop: 58,
-    width: "78%"
+    width: 280
   },
   scrim: {
     backgroundColor: "rgba(0,0,0,0.25)",
     flex: 1
   },
   newChat: {
+    alignItems: "center",
     backgroundColor: colors.control,
-    borderRadius: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    gap: 8,
+    height: 48,
     paddingHorizontal: 14,
     paddingVertical: 12
   },
@@ -102,32 +124,39 @@ const styles = StyleSheet.create({
     color: colors.inverseText,
     fontWeight: "800"
   },
-  search: {
+  searchWrap: {
+    alignItems: "center",
     backgroundColor: colors.panel,
-    borderColor: colors.border,
-    borderRadius: 14,
-    borderWidth: 1,
-    color: colors.text,
-    minHeight: 42,
+    borderRadius: 20,
+    flexDirection: "row",
+    gap: 8,
+    height: 40,
     paddingHorizontal: 12
+  },
+  search: {
+    color: colors.text,
+    flex: 1
   },
   section: {
     gap: 5
   },
   sectionTitle: {
     color: colors.muted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: "900",
+    letterSpacing: 1,
     textTransform: "uppercase"
   },
   item: {
     borderRadius: 10,
+    height: 44,
+    justifyContent: "center",
     paddingHorizontal: 10,
     paddingVertical: 8
   },
   itemText: {
     color: colors.text,
-    fontSize: 13
+    fontSize: 14
   },
   footer: {
     gap: 10,
