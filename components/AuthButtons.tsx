@@ -1,4 +1,5 @@
-import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
+import { AnimatedPressable } from "@/components/AnimatedPressable";
 
 type Props = {
   loading?: "apple" | "google" | "email" | null;
@@ -32,11 +33,11 @@ type ButtonProps = {
 
 function AuthButton({ title, dark, icon, loading, outline, onPress }: ButtonProps) {
   return (
-    <Pressable style={[styles.authButton, dark && styles.authDark, outline && styles.authOutline]} onPress={onPress}>
+    <AnimatedPressable style={[styles.authButton, dark && styles.authDark, outline && styles.authOutline]} onPress={onPress}>
       <Text style={[styles.authText, (dark || outline) && styles.authTextLight]}>
         {loading ? "..." : icon ? `${icon}  ${title}` : title}
       </Text>
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 

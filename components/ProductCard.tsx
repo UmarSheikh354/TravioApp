@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   darkAction: {
     backgroundColor: colors.control,
     borderRadius: 10,
-    flexGrow: 1,
+    width: "100%",
     height: 36,
     justifyContent: "center",
     paddingHorizontal: 12,

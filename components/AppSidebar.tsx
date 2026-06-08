@@ -1,6 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import { AnimatedPressable } from "@/components/AnimatedPressable";
 import { colors } from "@/lib/theme";
 import { useApp } from "@/context/AppContext";
 
@@ -23,7 +24,7 @@ export function AppSidebar({ visible, onClose, onNewChat }: Props) {
     <Modal animationType="slide" transparent visible={visible} onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.sidebar}>
-          <Pressable
+          <AnimatedPressable
             style={styles.newChat}
             onPress={() => {
               onNewChat?.();
@@ -33,7 +34,7 @@ export function AppSidebar({ visible, onClose, onNewChat }: Props) {
           >
             <Feather name="plus" size={18} color={colors.inverseText} />
             <Text style={styles.newChatText}>New Chat</Text>
-          </Pressable>
+          </AnimatedPressable>
           <View style={styles.searchWrap}>
             <Feather name="search" size={16} color={colors.muted} />
             <TextInput placeholder="Search chats..." placeholderTextColor="#777" style={styles.search} />
@@ -85,9 +86,9 @@ function SidebarSection({ title, items, onItemPress }: { title: string; items: s
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
       {items.map((item) => (
-        <Pressable key={item} style={styles.item} onPress={() => onItemPress?.(item)}>
+        <AnimatedPressable key={item} style={styles.item} onPress={() => onItemPress?.(item)}>
           <Text style={styles.itemText}>{item}</Text>
-        </Pressable>
+        </AnimatedPressable>
       ))}
     </View>
   );
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
   },
   sidebar: {
     backgroundColor: colors.sidebar,
-    gap: 14,
+    gap: 12,
     paddingBottom: 18,
     paddingHorizontal: 16,
     paddingTop: 58,
@@ -117,6 +118,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     height: 48,
+    margin: 0,
     paddingHorizontal: 14,
     paddingVertical: 12
   },

@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AnimatedPressable } from "@/components/AnimatedPressable";
 import { ChatComposer } from "@/components/ChatComposer";
 import { Screen } from "@/components/Screen";
 import { TravioHeader, TravioMark } from "@/components/TravioMark";
@@ -51,9 +52,9 @@ export default function HomeScreen() {
             <Text style={styles.emptyTitle}>How can I help you shop today?</Text>
             <View style={styles.suggestionGrid}>
               {suggestions.map((suggestion) => (
-                <Pressable key={suggestion} style={styles.suggestionChip} onPress={() => openChat(suggestion)}>
+                <AnimatedPressable key={suggestion} style={styles.suggestionChip} onPress={() => openChat(suggestion)}>
                   <Text style={styles.suggestionText}>{suggestion}</Text>
-                </Pressable>
+                </AnimatedPressable>
               ))}
             </View>
           </View>

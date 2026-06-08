@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, TextInput, type TextInputProps, View } from "react-native";
+import { StyleSheet, TextInput, type TextInputProps, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { AnimatedPressable } from "@/components/AnimatedPressable";
 import { colors } from "@/lib/theme";
 
 type Props = TextInputProps & {
@@ -13,9 +14,9 @@ type Props = TextInputProps & {
 export function ChatComposer({ disabled, loading, onAttach, onSend, onVoice, style, ...props }: Props) {
   return (
     <View style={styles.composer}>
-      <Pressable style={styles.plusButton} onPress={onAttach}>
+      <AnimatedPressable style={styles.plusButton} onPress={onAttach}>
         <Feather name="plus" size={18} color={colors.text} />
-      </Pressable>
+      </AnimatedPressable>
       <TextInput
         placeholder="Search for any product..."
         placeholderTextColor="#8C8C8C"
@@ -23,12 +24,12 @@ export function ChatComposer({ disabled, loading, onAttach, onSend, onVoice, sty
         multiline
         {...props}
       />
-      <Pressable style={styles.micButton} onPress={onVoice}>
+      <AnimatedPressable style={styles.micButton} onPress={onVoice}>
         <Feather name="mic" size={18} color={colors.text} />
-      </Pressable>
-      <Pressable style={[styles.sendButton, disabled && styles.disabled]} disabled={disabled} onPress={onSend}>
+      </AnimatedPressable>
+      <AnimatedPressable style={[styles.sendButton, disabled && styles.disabled]} disabled={disabled} onPress={onSend}>
         <Feather name={loading ? "square" : "arrow-up"} size={18} color="#FFFFFF" />
-      </Pressable>
+      </AnimatedPressable>
     </View>
   );
 }
@@ -38,22 +39,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#ffffff",
     borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: 26,
+    borderWidth: 1.5,
+    borderRadius: 28,
     flexDirection: "row",
     gap: 8,
-    minHeight: 52,
+    marginBottom: 16,
+    marginHorizontal: 16,
+    maxHeight: 200,
+    minHeight: 56,
     paddingHorizontal: 16,
-    paddingVertical: 12
+    paddingVertical: 12,
+    shadowColor: "#000",
+    shadowOffset: { height: 2, width: 0 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8
   },
   plusButton: {
     alignItems: "center",
-    borderColor: "#d9d9d9",
-    borderRadius: 14,
-    borderWidth: 1,
-    height: 28,
+    backgroundColor: "#F0F0F0",
+    borderRadius: 18,
+    height: 36,
     justifyContent: "center",
-    width: 28
+    width: 36
   },
   input: {
     color: colors.accentText,
@@ -75,8 +82,10 @@ const styles = StyleSheet.create({
   },
   micButton: {
     alignItems: "center",
-    height: 32,
+    backgroundColor: "#F0F0F0",
+    borderRadius: 18,
+    height: 36,
     justifyContent: "center",
-    width: 28
+    width: 36
   },
 });
