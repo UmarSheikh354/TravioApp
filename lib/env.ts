@@ -8,7 +8,11 @@ import {
   ANTHROPIC_API_KEY,
   ANTHROPIC_MODEL,
   EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+  EXPO_PUBLIC_RAPIDAPI_HOST,
+  EXPO_PUBLIC_RAPIDAPI_KEY,
+  EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
   PAYMENT_INTENT_ENDPOINT,
+  RAPIDAPI_HOST,
   RAPIDAPI_KEY,
   STRIPE_MERCHANT_ID,
   STRIPE_PUBLISHABLE_KEY,
@@ -17,7 +21,14 @@ import {
   TEMU_RAPIDAPI_HOST
 } from "@env";
 
-const PLACEHOLDER_MARKERS = ["your_key_here", "your_tag_here", "your_url_here", "your_host_here", "your_backend_here"];
+const PLACEHOLDER_MARKERS = [
+  "your_key_here",
+  "your_tag_here",
+  "your_url_here",
+  "your_host_here",
+  "your_backend_here",
+  "your_google_client_id_here"
+];
 
 function firstDefined(...values: Array<string | undefined>) {
   return values.find((value) => value && value.length > 0);
@@ -36,7 +47,26 @@ export const env = {
   amazonSecretKey: firstDefined(AMAZON_SECRET_KEY, process.env.EXPO_PUBLIC_AMAZON_SECRET_KEY),
   amazonPartnerTag: firstDefined(AMAZON_PARTNER_TAG, process.env.EXPO_PUBLIC_AMAZON_PARTNER_TAG),
   amazonRegion: process.env.EXPO_PUBLIC_AMAZON_REGION ?? "us-east-1",
-  temuRapidApiKey: firstDefined(RAPIDAPI_KEY, process.env.EXPO_PUBLIC_RAPIDAPI_KEY),
+  rapidApiKey: firstDefined(
+    EXPO_PUBLIC_RAPIDAPI_KEY,
+    EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
+    RAPIDAPI_KEY,
+    process.env.EXPO_PUBLIC_RAPIDAPI_KEY,
+    process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_KEY
+  ),
+  rapidApiHost: firstDefined(
+    EXPO_PUBLIC_RAPIDAPI_HOST,
+    RAPIDAPI_HOST,
+    process.env.EXPO_PUBLIC_RAPIDAPI_HOST,
+    "real-time-product-search.p.rapidapi.com"
+  ),
+  temuRapidApiKey: firstDefined(
+    EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
+    EXPO_PUBLIC_RAPIDAPI_KEY,
+    RAPIDAPI_KEY,
+    process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
+    process.env.EXPO_PUBLIC_RAPIDAPI_KEY
+  ),
   temuRapidApiHost: firstDefined(TEMU_RAPIDAPI_HOST, process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_HOST),
   stripePublishableKey: firstDefined(STRIPE_PUBLISHABLE_KEY, process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY),
   stripeMerchantId: firstDefined(STRIPE_MERCHANT_ID, process.env.EXPO_PUBLIC_STRIPE_MERCHANT_ID),

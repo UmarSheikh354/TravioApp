@@ -39,6 +39,61 @@ function amazonPrice(item: Record<string, unknown>) {
   );
 }
 
+function stringValue(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return undefined;
+}
+
+function arrayValue(value: unknown) {
+  return Array.isArray(value) ? value : undefined;
+}
+
+function realTimeProductFromRaw(raw: Record<string, unknown>, query: string, index: number): ProductOption {
+  const offer = (raw.offer as Record<string, unknown> | undefined) ?? {};
+  const priceRange = arrayValue(raw.typical_price_range);
+  const title = stringValue(raw.product_title, raw.title, raw.name) ?? `${query} product option`;
+  const price = numericPrice(
+    raw.product_price ??
+      raw.price ??
+      raw.offer_price ??
+      offer.price ??
+      offer.extracted_price ??
+      priceRange?.[0],
+    [19.99, 29.99, 39.99][index % 3]
+  );
+  const source = stringValue(raw.source, raw.merchant, raw.seller, offer.store_name, offer.source) ?? "Google Shopping";
+  const photos = arrayValue(raw.product_photos) ?? arrayValue(raw.images) ?? arrayValue(raw.thumbnails);
+  const image = stringValue(raw.product_photo, raw.thumbnail, raw.image, raw.image_url, photos?.[0]);
+  const rating = stringValue(raw.product_rating, raw.rating);
+  const reviews = stringValue(raw.product_num_reviews, raw.reviews, raw.reviews_count);
+
+  return {
+    id: stringValue(raw.product_id, raw.product_page_url, raw.url, raw.link) ?? `rapid-product-${Date.now()}-${index}`,
+    name: title,
+    price_per_unit: price,
+    total_price: price,
+    delivery_days: Math.max(2, Math.min(14, 4 + index * 2)),
+    supplier: source.includes("Amazon")
+      ? "Amazon"
+      : source.includes("Ali") || source.includes("Alibaba")
+        ? "Alibaba"
+        : source.includes("Temu")
+          ? "Temu"
+          : "Google Shopping",
+    description:
+      stringValue(raw.product_description, raw.description, raw.snippet, raw.product_page_url, raw.url) ??
+      `Live result from ${source}${rating ? ` • ${rating} stars` : ""}${reviews ? ` • ${reviews} reviews` : ""}.`,
+    category: stringValue(raw.category, raw.product_type) ?? "Shopping",
+    image_url: image,
+    availability: stringValue(raw.availability, raw.stock_status) ?? "Available"
+  };
+}
+
 function optionFromRaw(raw: Record<string, unknown>, supplier: ProductOption["supplier"], query: string): ProductOption {
   const name =
     (raw.product_title as string) ??
@@ -63,6 +118,53 @@ function optionFromRaw(raw: Record<string, unknown>, supplier: ProductOption["su
     image_url: (raw.product_main_image_url as string) ?? (raw.image as string) ?? (raw.image_url as string),
     availability: (raw.availability as string) ?? "Available"
   };
+}
+
+export async function searchRealTimeProducts(query: string): Promise<{ products: ProductOption[]; error?: string }> {
+  if (!isConfigured(env.rapidApiKey)) {
+    return { products: [], error: missingConfigMessage("RapidAPI Real-Time Product Search") };
+  }
+
+  const host = env.rapidApiHost ?? "real-time-product-search.p.rapidapi.com";
+  const params = new URLSearchParams({
+    q: query,
+    country: "us",
+    language: "en",
+    limit: "6"
+  });
+
+  const response = await fetch(`https://${host}/search?${params.toString()}`, {
+    headers: {
+      "x-rapidapi-host": host,
+      "x-rapidapi-key": env.rapidApiKey!
+    }
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    return { products: [], error: `Real-Time Product Search failed with ${response.status}: ${message.slice(0, 160)}` };
+  }
+
+  const json = await response.json();
+  const rawProducts =
+    arrayValue(json?.data?.products) ??
+    arrayValue(json?.data?.organic_results) ??
+    arrayValue(json?.data?.shopping_results) ??
+    arrayValue(json?.data) ??
+    arrayValue(json?.products) ??
+    arrayValue(json?.shopping_results) ??
+    [];
+
+  const products = rawProducts
+    .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+    .slice(0, 6)
+    .map((item, index) => realTimeProductFromRaw(item, query, index));
+
+  if (products.length === 0) {
+    return { products, error: "Real-Time Product Search returned no matching products." };
+  }
+
+  return { products };
 }
 
 export async function searchAliExpress(query: string): Promise<ApiResult<ProductOption>> {

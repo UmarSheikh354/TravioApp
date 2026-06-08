@@ -11,6 +11,10 @@ declare module "@env" {
   export const ALIEXPRESS_APP_KEY: string | undefined;
   export const ALIEXPRESS_APP_SECRET: string | undefined;
   export const RAPIDAPI_KEY: string | undefined;
+  export const RAPIDAPI_HOST: string | undefined;
+  export const EXPO_PUBLIC_RAPIDAPI_KEY: string | undefined;
+  export const EXPO_PUBLIC_RAPIDAPI_HOST: string | undefined;
+  export const EXPO_PUBLIC_TEMU_RAPIDAPI_KEY: string | undefined;
   export const ALIEXPRESS_TRACKING_ID: string | undefined;
   export const TEMU_RAPIDAPI_HOST: string | undefined;
   export const STRIPE_MERCHANT_ID: string | undefined;

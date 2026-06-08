@@ -1,6 +1,6 @@
 export type SupportedLanguage = "en" | "ur" | "ar";
 
-export type Supplier = "Alibaba" | "Amazon" | "Temu";
+export type Supplier = "Alibaba" | "Amazon" | "Temu" | "AliExpress" | "Google Shopping";
 
 export type ProductOption = {
   id?: string;
