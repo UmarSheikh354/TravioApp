@@ -8,7 +8,8 @@ import { useApp } from "@/context/AppContext";
 export default function OrderSuccessScreen() {
   const { t } = useTranslation();
   const { latestOrder } = useApp();
-  const params = useLocalSearchParams<{ tracking?: string }>();
+  const params = useLocalSearchParams<{ orderId?: string; tracking?: string }>();
+  const orderId = latestOrder?.id ?? params.orderId ?? "TRV-PENDING";
   const tracking = latestOrder?.tracking_number ?? params.tracking ?? "TRV-PENDING";
 
   return (
@@ -19,6 +20,8 @@ export default function OrderSuccessScreen() {
       <Text style={styles.title}>{t("orderSuccess")}</Text>
       <Text style={styles.subtitle}>Your order has been saved and tracking has started.</Text>
       <View style={styles.card}>
+        <Text style={styles.label}>Order number</Text>
+        <Text style={styles.tracking}>{orderId}</Text>
         <Text style={styles.label}>{t("trackingNumber")}</Text>
         <Text style={styles.tracking}>{tracking}</Text>
       </View>

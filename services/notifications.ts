@@ -54,3 +54,33 @@ export async function notifyOrderUpdate(order: TravioOrder) {
     trigger: null
   });
 }
+
+export async function notifyOrderShipped(order: TravioOrder) {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Travio order shipped",
+      body: `${order.product_name} has shipped. Tracking: ${order.tracking_number}`,
+      data: {
+        orderId: order.id,
+        trackingNumber: order.tracking_number,
+        status: "shipped"
+      }
+    },
+    trigger: null
+  });
+}
+
+export async function notifyOrderDelivered(order: TravioOrder) {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Travio order delivered",
+      body: `${order.product_name} has been delivered.`,
+      data: {
+        orderId: order.id,
+        trackingNumber: order.tracking_number,
+        status: "delivered"
+      }
+    },
+    trigger: null
+  });
+}

@@ -1,6 +1,6 @@
 export type SupportedLanguage = "en" | "ur" | "ar";
 
-export type Supplier = "Alibaba" | "Amazon" | "Temu";
+export type Supplier = "Alibaba" | "Amazon" | "Temu" | "AliExpress" | "Google Shopping";
 
 export type ProductOption = {
   id?: string;
@@ -10,8 +10,21 @@ export type ProductOption = {
   delivery_days: number;
   supplier: Supplier;
   description: string;
+  category?: string;
   image_url?: string;
   availability?: string;
+  cashback_percent?: number;
+  coupon?: string;
+  price_history?: number[];
+  product_url?: string;
+  quality_score?: number;
+  rating?: number;
+  return_policy?: string;
+  reviews_count?: number;
+  seller_badge?: "new" | "trusted" | "verified";
+  seller_rating?: number;
+  seller_years_active?: number;
+  safety_score?: number;
 };
 
 export type ChatMessage = {
@@ -22,7 +35,7 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-export type OrderStatus = "pending" | "paid" | "processing" | "shipped" | "delivered" | "cancelled";
+export type OrderStatus = "pending" | "processing" | "shipped" | "delivered" | "cancelled";
 
 export type CustomerDetails = {
   name: string;
@@ -42,9 +55,12 @@ export type TravioOrder = {
   user_id: string;
   product_name: string;
   quantity: number;
-  price: number;
+  price_per_unit: number;
+  total_price: number;
   supplier: Supplier;
-  address: string;
+  delivery_address: string;
+  city: string;
+  country: string;
   status: OrderStatus;
   created_at: string;
   tracking_number: string;
@@ -55,6 +71,8 @@ export type TravioUser = {
   name: string;
   email: string;
   phone?: string;
+  address?: string;
+  agreement_accepted_at?: string;
   created_at: string;
 };
 

@@ -1,5 +1,6 @@
 import { askClaudeForProducts } from "@/services/claude";
-import { searchMarketplaces } from "@/services/marketplaces";
+import { searchMarketplaces, searchRealTimeProducts } from "@/services/marketplaces";
+import { applySmartFilters, parseSmartSearch } from "@/services/smartSearch";
 import type { ProductOption, Supplier } from "@/types/travio";
 
 const suppliers: Supplier[] = ["Alibaba", "Amazon", "Temu"];
@@ -20,6 +21,7 @@ function fallbackProducts(query: string, existing: ProductOption[]): ProductOpti
         supplier,
         description:
           "Demo product generated while API credentials are placeholders. Add real keys in .env for live search results.",
+        category: "General",
         availability: "Demo"
       });
     }
@@ -29,8 +31,20 @@ function fallbackProducts(query: string, existing: ProductOption[]): ProductOpti
 }
 
 export async function searchTravioProducts(query: string) {
+  const intent = parseSmartSearch(query);
+  const { products: realTimeProducts, error: realTimeError } = await searchRealTimeProducts(intent.query);
+  const realTimeErrors = realTimeError ? [realTimeError] : [];
+
+  if (realTimeProducts.length > 0) {
+    const filteredProducts = applySmartFilters(realTimeProducts, intent);
+    return {
+      products: (filteredProducts.length > 0 ? filteredProducts : realTimeProducts).slice(0, 6),
+      errors: realTimeErrors
+    };
+  }
+
   const { products: marketplaceProducts, errors: marketplaceErrors } = await searchMarketplaces(query);
-  const errors = [...marketplaceErrors];
+  const errors = [...realTimeErrors, ...marketplaceErrors];
 
   try {
     const claudeProducts = await askClaudeForProducts(query, marketplaceProducts);

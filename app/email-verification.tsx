@@ -1,24 +1,23 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/PrimaryButton";
 import { Screen } from "@/components/Screen";
-import { TextField } from "@/components/TextField";
+import { TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
+import { colors } from "@/lib/theme";
 
 export default function EmailVerificationScreen() {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ email?: string }>();
+  const params = useLocalSearchParams<{ email?: string; agreementAcceptedAt?: string }>();
   const { verifyEmail } = useApp();
-  const [token, setToken] = useState("");
   const [loading, setLoading] = useState(false);
   const email = params.email ?? "";
 
   async function handleVerify() {
     try {
       setLoading(true);
-      await verifyEmail(email, token || "000000");
+      await verifyEmail(email, "000000", params.agreementAcceptedAt ?? new Date().toISOString());
       router.replace("/(tabs)");
     } catch (error) {
       Alert.alert(t("verification"), error instanceof Error ? error.message : "Verification failed.");
@@ -29,37 +28,80 @@ export default function EmailVerificationScreen() {
 
   return (
     <Screen style={styles.screen}>
-      <Text style={styles.title}>{t("verification")}</Text>
-      <Text style={styles.subtitle}>{t("verificationHint")}</Text>
-      <Text style={styles.email}>{email}</Text>
-      <TextField
-        label="Code"
-        keyboardType="number-pad"
-        placeholder="000000"
-        value={token}
-        onChangeText={setToken}
-      />
-      <PrimaryButton title={t("verify")} loading={loading} onPress={handleVerify} />
+      <View style={styles.topMark}>
+        <TravioMark size={22} />
+      </View>
+      <View style={styles.center}>
+        <View style={styles.envelopeWrap}>
+          <Text style={styles.icon}>✉</Text>
+          <View style={styles.redDot} />
+        </View>
+        <Text style={styles.subtitle}>Tap on the link we sent to{"\n"}{email || "your email"}</Text>
+      </View>
+      <View style={styles.controls}>
+        <VerifyButton title={loading ? "Checking..." : "I've verified my email"} onPress={handleVerify} />
+        <VerifyButton title="Sign out" onPress={() => router.replace("/login")} />
+      </View>
     </Screen>
+  );
+}
+
+function VerifyButton({ title, onPress }: { title: string; onPress: () => void }) {
+  return (
+    <Pressable style={styles.verifyButton} onPress={onPress}>
+      <Text style={styles.verifyText}>{title}</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    justifyContent: "center"
+    justifyContent: "space-between"
   },
-  title: {
-    color: "#fff",
-    fontSize: 32,
-    fontWeight: "900"
+  topMark: {
+    alignItems: "flex-end"
+  },
+  center: {
+    alignItems: "center",
+    gap: 24,
+    paddingHorizontal: 16
+  },
+  controls: {
+    gap: 8,
+    paddingBottom: 8
+  },
+  envelopeWrap: {
+    position: "relative"
+  },
+  icon: {
+    color: colors.accent,
+    fontSize: 46
+  },
+  redDot: {
+    backgroundColor: "#ff453f",
+    borderRadius: 6,
+    height: 12,
+    position: "absolute",
+    right: -2,
+    top: 5,
+    width: 12
   },
   subtitle: {
-    color: "#9aa7bd",
-    fontSize: 16,
-    lineHeight: 24
+    color: colors.muted,
+    fontSize: 10,
+    lineHeight: 15,
+    textAlign: "center"
   },
-  email: {
-    color: "#21d4a2",
+  verifyButton: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    borderRadius: 7,
+    justifyContent: "center",
+    minHeight: 38
+  },
+  verifyText: {
+    color: "#000000",
+    fontSize: 11,
     fontWeight: "700"
   }
 });

@@ -1,10 +1,10 @@
 import { env, isConfigured, missingConfigMessage } from "@/lib/env";
 import type { ProductOption } from "@/types/travio";
 
-export const CLAUDE_MODEL = "claude-sonnet-4-20250514";
+export const CLAUDE_MODEL = env.claudeModel ?? "claude-sonnet-4-20250514";
 
 export const TRAVIO_SYSTEM_PROMPT =
-  'You are Travio AI. When user describes a product, search and return exactly 3 options from Alibaba, Amazon and Temu in JSON format: {products: [{name, price_per_unit, total_price, delivery_days, supplier, description}]}';
+  "You are Travio AI, a global shopping assistant. When user describes any product, find exactly 3 options from Alibaba, Amazon and Temu. Return ONLY this JSON: {products:[{name, price_per_unit, total_price, delivery_days, supplier, description, category}]}";
 
 type ClaudeContentBlock = {
   type: string;
@@ -42,6 +42,7 @@ function normalizeProducts(products: unknown): ProductOption[] {
       delivery_days: Number(item.delivery_days) || 14,
       supplier,
       description: String(item.description ?? `Recommended by Travio AI from ${supplier}.`),
+      category: item.category ?? "General",
       image_url: item.image_url,
       availability: item.availability ?? "Available"
     };

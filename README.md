@@ -13,7 +13,8 @@ Travio is a React Native Expo app that lets a user describe a product, receives 
 - Supabase users, products, and orders persistence
 - Expo push notification registration and local order update notifications
 - English, Urdu, and Arabic translations
-- `.env` placeholders for every external service
+- `.env` placeholders for every external service using the requested Travio key names
+- Legal agreement gating with Privacy Policy and Terms screens
 
 ## Setup
 
@@ -24,14 +25,18 @@ npm start
 
 Replace the placeholder values in `.env` with real API credentials before testing live Claude, marketplace, Stripe, and Supabase flows.
 
+## Android release
+
+See `docs/PLAY_STORE_RELEASE.md` for EAS build commands, Play Store release steps, and the required production configuration checklist.
+
 ## Database
 
-Run `supabase/schema.sql` in Supabase SQL editor to create:
+Run `supabase/schema.sql` in the Supabase SQL editor to create:
 
-- `users (id, name, email, phone, created_at)`
-- `orders (id, user_id, product_name, quantity, price, supplier, address, status, created_at)`
-- `products (id, name, price, supplier, delivery_days, image_url)`
+- `users (id, name, email, phone, address, agreement_accepted_at, created_at)`
+- `orders (id, user_id, product_name, quantity, price_per_unit, total_price, supplier, delivery_address, city, country, status, tracking_number, created_at)`
+- `products (id, name, price, supplier, delivery_days, image_url, category)`
 
 ## Notes
 
-The app includes a local demo fallback when API credentials are placeholders so the flow can be exercised before backend keys are available. Production marketplace and payment flows should use signed server-side endpoints where provider policies require secret keys.
+The app includes a local demo fallback when API credentials are placeholders so the flow can be exercised before backend keys are available. Production marketplace and payment flows should use signed server-side endpoints where provider policies require secret keys, especially Amazon PAAPI, AliExpress signing, Anthropic, and Stripe PaymentIntent creation.

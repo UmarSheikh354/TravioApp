@@ -1,6 +1,6 @@
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Screen } from "@/components/Screen";
 import { useApp } from "@/context/AppContext";
@@ -10,17 +10,23 @@ export default function OrdersHistoryScreen() {
   const { orders, refreshOrders } = useApp();
   const [loading, setLoading] = useState(false);
 
+  const handleRefresh = useCallback(() => {
+    setLoading(true);
+    refreshOrders()
+      .catch((error) => Alert.alert(t("orders"), error.message))
+      .finally(() => setLoading(false));
+  }, [refreshOrders, t]);
+
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
-      refreshOrders()
-        .catch((error) => Alert.alert(t("orders"), error.message))
-        .finally(() => setLoading(false));
-    }, [refreshOrders, t])
+      handleRefresh();
+    }, [handleRefresh])
   );
 
   return (
-    <Screen>
+    <Screen
+      refreshControl={<RefreshControl tintColor="#21d4a2" refreshing={loading} onRefresh={handleRefresh} />}
+    >
       <Text style={styles.title}>{t("orders")}</Text>
       {loading ? <ActivityIndicator color="#21d4a2" /> : null}
       {orders.length === 0 ? <Text style={styles.empty}>{t("noOrders")}</Text> : null}
@@ -34,7 +40,9 @@ export default function OrdersHistoryScreen() {
             {t("status")}: {order.status}
           </Text>
           <Text style={styles.meta}>Quantity: {order.quantity}</Text>
-          <Text style={styles.meta}>Total: ${order.price.toFixed(2)}</Text>
+          <Text style={styles.meta}>Delivery: {order.delivery_address}, {order.city}, {order.country}</Text>
+          <Text style={styles.meta}>Unit: ${order.price_per_unit.toFixed(2)}</Text>
+          <Text style={styles.meta}>Total: ${order.total_price.toFixed(2)}</Text>
           <Text style={styles.tracking}>
             {t("trackingNumber")}: {order.tracking_number}
           </Text>

@@ -1,21 +1,76 @@
-const PLACEHOLDER_MARKERS = ["your-", "example.com", "temu-api-host-from-rapidapi"];
+import {
+  ALIEXPRESS_APP_KEY,
+  ALIEXPRESS_APP_SECRET,
+  ALIEXPRESS_TRACKING_ID,
+  AMAZON_ACCESS_KEY,
+  AMAZON_PARTNER_TAG,
+  AMAZON_SECRET_KEY,
+  ANTHROPIC_API_KEY,
+  ANTHROPIC_MODEL,
+  EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+  EXPO_PUBLIC_RAPIDAPI_HOST,
+  EXPO_PUBLIC_RAPIDAPI_KEY,
+  EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
+  PAYMENT_INTENT_ENDPOINT,
+  RAPIDAPI_HOST,
+  RAPIDAPI_KEY,
+  STRIPE_MERCHANT_ID,
+  STRIPE_PUBLISHABLE_KEY,
+  SUPABASE_ANON_KEY,
+  SUPABASE_URL,
+  TEMU_RAPIDAPI_HOST
+} from "@env";
+
+const PLACEHOLDER_MARKERS = [
+  "your_key_here",
+  "your_tag_here",
+  "your_url_here",
+  "your_host_here",
+  "your_backend_here",
+  "your_google_client_id_here"
+];
+
+function firstDefined(...values: Array<string | undefined>) {
+  return values.find((value) => value && value.length > 0);
+}
 
 export const env = {
-  supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-  claudeApiKey: process.env.EXPO_PUBLIC_CLAUDE_API_KEY,
-  aliexpressAppKey: process.env.EXPO_PUBLIC_ALIEXPRESS_APP_KEY,
-  aliexpressAppSecret: process.env.EXPO_PUBLIC_ALIEXPRESS_APP_SECRET,
-  aliexpressTrackingId: process.env.EXPO_PUBLIC_ALIEXPRESS_TRACKING_ID,
-  amazonAccessKey: process.env.EXPO_PUBLIC_AMAZON_ACCESS_KEY,
-  amazonSecretKey: process.env.EXPO_PUBLIC_AMAZON_SECRET_KEY,
-  amazonAssociateTag: process.env.EXPO_PUBLIC_AMAZON_ASSOCIATE_TAG,
+  supabaseUrl: firstDefined(SUPABASE_URL, process.env.EXPO_PUBLIC_SUPABASE_URL),
+  supabaseAnonKey: firstDefined(SUPABASE_ANON_KEY, process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY),
+  claudeApiKey: firstDefined(ANTHROPIC_API_KEY, process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY),
+  claudeModel: firstDefined(ANTHROPIC_MODEL, process.env.EXPO_PUBLIC_ANTHROPIC_MODEL),
+  googleClientId: firstDefined(EXPO_PUBLIC_GOOGLE_CLIENT_ID, process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID),
+  aliexpressAppKey: firstDefined(ALIEXPRESS_APP_KEY, process.env.EXPO_PUBLIC_ALIEXPRESS_APP_KEY),
+  aliexpressAppSecret: firstDefined(ALIEXPRESS_APP_SECRET, process.env.EXPO_PUBLIC_ALIEXPRESS_APP_SECRET),
+  aliexpressTrackingId: firstDefined(ALIEXPRESS_TRACKING_ID, process.env.EXPO_PUBLIC_ALIEXPRESS_TRACKING_ID),
+  amazonAccessKey: firstDefined(AMAZON_ACCESS_KEY, process.env.EXPO_PUBLIC_AMAZON_ACCESS_KEY),
+  amazonSecretKey: firstDefined(AMAZON_SECRET_KEY, process.env.EXPO_PUBLIC_AMAZON_SECRET_KEY),
+  amazonPartnerTag: firstDefined(AMAZON_PARTNER_TAG, process.env.EXPO_PUBLIC_AMAZON_PARTNER_TAG),
   amazonRegion: process.env.EXPO_PUBLIC_AMAZON_REGION ?? "us-east-1",
-  temuRapidApiKey: process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
-  temuRapidApiHost: process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_HOST,
-  stripePublishableKey: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-  stripeMerchantId: process.env.EXPO_PUBLIC_STRIPE_MERCHANT_ID,
-  paymentIntentEndpoint: process.env.EXPO_PUBLIC_PAYMENT_INTENT_ENDPOINT
+  rapidApiKey: firstDefined(
+    EXPO_PUBLIC_RAPIDAPI_KEY,
+    EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
+    RAPIDAPI_KEY,
+    process.env.EXPO_PUBLIC_RAPIDAPI_KEY,
+    process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_KEY
+  ),
+  rapidApiHost: firstDefined(
+    EXPO_PUBLIC_RAPIDAPI_HOST,
+    RAPIDAPI_HOST,
+    process.env.EXPO_PUBLIC_RAPIDAPI_HOST,
+    "real-time-product-search.p.rapidapi.com"
+  ),
+  temuRapidApiKey: firstDefined(
+    EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
+    EXPO_PUBLIC_RAPIDAPI_KEY,
+    RAPIDAPI_KEY,
+    process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
+    process.env.EXPO_PUBLIC_RAPIDAPI_KEY
+  ),
+  temuRapidApiHost: firstDefined(TEMU_RAPIDAPI_HOST, process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_HOST),
+  stripePublishableKey: firstDefined(STRIPE_PUBLISHABLE_KEY, process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY),
+  stripeMerchantId: firstDefined(STRIPE_MERCHANT_ID, process.env.EXPO_PUBLIC_STRIPE_MERCHANT_ID),
+  paymentIntentEndpoint: firstDefined(PAYMENT_INTENT_ENDPOINT, process.env.EXPO_PUBLIC_PAYMENT_INTENT_ENDPOINT)
 };
 
 export function isConfigured(value?: string) {

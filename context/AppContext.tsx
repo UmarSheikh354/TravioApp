@@ -28,10 +28,11 @@ type AppContextValue = {
   latestOrder: TravioOrder | null;
   orders: TravioOrder[];
   language: SupportedLanguage;
-  signInWithEmail: (email: string) => Promise<void>;
-  verifyEmail: (email: string, token: string) => Promise<void>;
-  signInWithApple: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, agreementAcceptedAt: string) => Promise<void>;
+  verifyEmail: (email: string, token: string, agreementAcceptedAt: string) => Promise<void>;
+  signInWithApple: (agreementAcceptedAt: string) => Promise<void>;
+  signInWithGoogle: (agreementAcceptedAt: string) => Promise<void>;
+  signInWithGoogleIdToken: (idToken: string, agreementAcceptedAt: string) => Promise<void>;
   logout: () => Promise<void>;
   selectProduct: (product: ProductOption) => void;
   setDraft: (draft: OrderDraft) => void;
@@ -41,6 +42,7 @@ type AppContextValue = {
 };
 
 const LANGUAGE_KEY = "travio.language";
+const PENDING_AGREEMENT_KEY = "travio.pendingAgreementAcceptedAt";
 const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 export function AppProvider({ children }: PropsWithChildren) {
@@ -75,15 +77,19 @@ export function AppProvider({ children }: PropsWithChildren) {
         if (supabase) {
           const { data } = await supabase.auth.getUser();
           if (data.user?.email) {
+            const pendingAgreementAcceptedAt = await AsyncStorage.getItem(PENDING_AGREEMENT_KEY);
             const profile: TravioUser = {
               id: data.user.id,
               name: data.user.user_metadata?.name ?? data.user.email.split("@")[0],
               email: data.user.email,
               phone: data.user.phone ?? undefined,
+              agreement_accepted_at:
+                (data.user.user_metadata?.agreement_accepted_at as string | undefined) ?? pendingAgreementAcceptedAt ?? undefined,
               created_at: data.user.created_at
             };
             setUser(profile);
             await upsertUserProfile(profile);
+            await AsyncStorage.removeItem(PENDING_AGREEMENT_KEY);
           }
         } else {
           setUser(await getLocalUser());
@@ -102,21 +108,24 @@ export function AppProvider({ children }: PropsWithChildren) {
     refreshOrders().catch((error) => Alert.alert("Orders", error.message));
   }, [refreshOrders]);
 
-  async function signInWithEmail(email: string) {
+  async function signInWithEmail(email: string, agreementAcceptedAt: string) {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
       throw new Error("Email is required.");
     }
 
     if (!supabase) {
-      await storeLocalUser(makeLocalUser(normalizedEmail));
+      await storeLocalUser(makeLocalUser(normalizedEmail, "Travio User", agreementAcceptedAt));
       return;
     }
 
     const { error } = await supabase.auth.signInWithOtp({
       email: normalizedEmail,
       options: {
-        shouldCreateUser: true
+        shouldCreateUser: true,
+        data: {
+          agreement_accepted_at: agreementAcceptedAt
+        }
       }
     });
 
@@ -125,9 +134,9 @@ export function AppProvider({ children }: PropsWithChildren) {
     }
   }
 
-  async function verifyEmail(email: string, token: string) {
+  async function verifyEmail(email: string, token: string, agreementAcceptedAt: string) {
     if (!supabase) {
-      const localUser = makeLocalUser(email);
+      const localUser = makeLocalUser(email, "Travio User", agreementAcceptedAt);
       await storeLocalUser(localUser);
       setUser(localUser);
       return;
@@ -148,21 +157,14 @@ export function AppProvider({ children }: PropsWithChildren) {
       name: data.user.email.split("@")[0],
       email: data.user.email,
       phone: data.user.phone ?? undefined,
+      agreement_accepted_at: agreementAcceptedAt,
       created_at: data.user.created_at
     };
     await upsertUserProfile(profile);
     setUser(profile);
   }
 
-  async function signInWithApple() {
-    if (supabase && isSupabaseConfigured) {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "apple" });
-      if (error) {
-        throw new Error(error.message);
-      }
-      return;
-    }
-
+  async function signInWithApple(agreementAcceptedAt: string) {
     const credential = await AppleAuthentication.signInAsync({
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -170,13 +172,37 @@ export function AppProvider({ children }: PropsWithChildren) {
       ]
     });
     const email = credential.email ?? "apple-user@travio.local";
-    const localUser = makeLocalUser(email, credential.fullName?.givenName ?? "Apple User");
+    const name = credential.fullName?.givenName ?? "Apple User";
+
+    if (supabase && isSupabaseConfigured && credential.identityToken) {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "apple",
+        token: credential.identityToken
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const profile = makeLocalUser(data.user?.email ?? email, name, agreementAcceptedAt);
+      const supabaseProfile: TravioUser = {
+        ...profile,
+        id: data.user?.id ?? profile.id,
+        created_at: data.user?.created_at ?? profile.created_at
+      };
+      await upsertUserProfile(supabaseProfile);
+      setUser(supabaseProfile);
+      return;
+    }
+
+    const localUser = makeLocalUser(email, name, agreementAcceptedAt);
     await storeLocalUser(localUser);
     setUser(localUser);
   }
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(agreementAcceptedAt: string) {
     if (supabase && isSupabaseConfigured) {
+      await AsyncStorage.setItem(PENDING_AGREEMENT_KEY, agreementAcceptedAt);
       const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
       if (error) {
         throw new Error(error.message);
@@ -184,7 +210,36 @@ export function AppProvider({ children }: PropsWithChildren) {
       return;
     }
 
-    const localUser = makeLocalUser("google-user@travio.local", "Google User");
+    const localUser = makeLocalUser("google-user@travio.local", "Google User", agreementAcceptedAt);
+    await storeLocalUser(localUser);
+    setUser(localUser);
+  }
+
+  async function signInWithGoogleIdToken(idToken: string, agreementAcceptedAt: string) {
+    if (supabase && isSupabaseConfigured) {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: idToken
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const email = data.user?.email ?? "google-user@travio.local";
+      const profile: TravioUser = {
+        id: data.user?.id ?? `local-${email}`,
+        name: data.user?.user_metadata?.name ?? email.split("@")[0],
+        email,
+        agreement_accepted_at: agreementAcceptedAt,
+        created_at: data.user?.created_at ?? new Date().toISOString()
+      };
+      await upsertUserProfile(profile);
+      setUser(profile);
+      return;
+    }
+
+    const localUser = makeLocalUser("google-user@travio.local", "Google User", agreementAcceptedAt);
     await storeLocalUser(localUser);
     setUser(localUser);
   }
@@ -209,7 +264,10 @@ export function AppProvider({ children }: PropsWithChildren) {
     setLatestOrder(order);
     setOrderDraft(null);
     setSelectedProduct(null);
-    await refreshOrders();
+    setOrders((current) => [order, ...current.filter((item) => item.id !== order.id)]);
+    if (user) {
+      await refreshOrders();
+    }
     return order;
   }
 
@@ -232,6 +290,7 @@ export function AppProvider({ children }: PropsWithChildren) {
       verifyEmail,
       signInWithApple,
       signInWithGoogle,
+      signInWithGoogleIdToken,
       logout,
       selectProduct: setSelectedProduct,
       setDraft: setOrderDraft,

@@ -1,109 +1,176 @@
 import { router } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/PrimaryButton";
+import { useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { AppSidebar } from "@/components/AppSidebar";
+import { AnimatedPressable } from "@/components/AnimatedPressable";
+import { ChatComposer } from "@/components/ChatComposer";
 import { Screen } from "@/components/Screen";
+import { TravioHeader, TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
+import { colors, radii } from "@/lib/theme";
+
+const suggestions = ["🔎 Find me a product", "⚖️ Compare prices", "⚡ Best deals today", "🌐 Search Alibaba"];
 
 export default function HomeScreen() {
-  const { t } = useTranslation();
-  const { user, orders } = useApp();
+  const { orders } = useApp();
+  const [request, setRequest] = useState("");
+  const [showMenu, setShowMenu] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const activeOrders = orders.filter((order) => !["delivered", "cancelled"].includes(order.status));
+  const recentOrders = orders.slice(0, 3);
+
+  function openChat(query?: string) {
+    const trimmed = query?.trim();
+    router.push(trimmed ? { pathname: "/chat", params: { q: trimmed } } : "/chat");
+    setRequest("");
+  }
 
   return (
-    <Screen>
-      <View style={styles.hero}>
-        <Text style={styles.eyebrow}>{t("appName")}</Text>
-        <Text style={styles.title}>Welcome{user?.name ? `, ${user.name}` : ""}</Text>
-        <Text style={styles.subtitle}>Find products globally, compare suppliers, and pay securely.</Text>
-        <PrimaryButton title={t("startChat")} onPress={() => router.push("/chat")} />
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Order status tracking</Text>
-        <Text style={styles.cardText}>
-          {activeOrders.length > 0
-            ? `${activeOrders.length} active order${activeOrders.length === 1 ? "" : "s"} in progress.`
-            : "No active orders. Start a chat to create one."}
-        </Text>
-      </View>
-
-      <View style={styles.steps}>
-        {["Chat with Travio AI", "Choose a product card", "Confirm details", "Pay and track"].map((step, index) => (
-          <View key={step} style={styles.step}>
-            <Text style={styles.stepNumber}>{index + 1}</Text>
-            <Text style={styles.stepText}>{step}</Text>
+    <Screen scroll={false} style={styles.screen}>
+      <AppSidebar visible={sidebarOpen} onClose={() => setSidebarOpen(false)} onNewChat={() => setRequest("")} />
+      <TravioHeader
+        onMenuPress={() => setSidebarOpen(true)}
+        onTitlePress={() => setShowMenu((value) => !value)}
+        onEditPress={() => router.push("/chat")}
+      />
+      {showMenu ? (
+        <View style={styles.planMenu}>
+          <Pressable style={styles.planRow} onPress={() => router.push("/(tabs)/profile")}>
+            <Text style={styles.planText}>TRAVIO PLUS</Text>
+            <Text style={styles.planIcon}>ϟ</Text>
+          </Pressable>
+          <Pressable style={styles.planRow} onPress={() => setShowMenu(false)}>
+            <Text style={styles.planText}>✓ TRAVIO</Text>
+            <Text style={styles.planIcon}>✦</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      <View style={styles.canvas}>
+        {activeOrders.length === 0 ? (
+          <View style={styles.emptyState}>
+            <TravioMark size={64} />
+            <Text style={styles.emptyTitle}>How can I help you shop today?</Text>
+            <View style={styles.suggestionGrid}>
+              {suggestions.map((suggestion) => (
+                <AnimatedPressable key={suggestion} style={styles.suggestionChip} onPress={() => openChat(suggestion)}>
+                  <Text style={styles.suggestionText}>{suggestion}</Text>
+                </AnimatedPressable>
+              ))}
+            </View>
           </View>
-        ))}
+        ) : (
+          <View style={styles.statusCard}>
+            <Text style={styles.statusTitle}>{activeOrders.length} active order{activeOrders.length === 1 ? "" : "s"}</Text>
+            {recentOrders.map((order) => (
+              <Text key={order.id} style={styles.statusText}>{order.product_name} - {order.status}</Text>
+            ))}
+          </View>
+        )}
       </View>
+      <ChatComposer
+        value={request}
+        onChangeText={setRequest}
+        placeholder="Search for any product..."
+        disabled={!request.trim()}
+        onAttach={() => Alert.alert("Add to search", "Camera, image upload, and file upload are ready for native builds.")}
+        onVoice={() => router.push("/voice-listening")}
+        onSend={() => openChat(request)}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    backgroundColor: "#0f1728",
-    borderColor: "#24304a",
+  screen: {
+    justifyContent: "space-between"
+  },
+  canvas: {
+    alignItems: "center",
+    backgroundColor: colors.chat,
+    borderColor: colors.border,
     borderRadius: 28,
     borderWidth: 1,
-    gap: 14,
-    padding: 22
+    flex: 1,
+    justifyContent: "flex-end",
+    marginVertical: 14,
+    paddingBottom: 16
   },
-  eyebrow: {
-    color: "#21d4a2",
+  emptyState: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+    gap: 18,
+    width: "100%"
+  },
+  emptyTitle: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: "400",
+    marginTop: 8
+  },
+  suggestionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 9,
+    justifyContent: "center",
+    marginTop: 12,
+    paddingHorizontal: 12
+  },
+  suggestionChip: {
+    backgroundColor: "#FFFFFF",
+    borderColor: "#CCCCCC",
+    borderRadius: 20,
+    borderWidth: 1,
+    minHeight: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 10
+  },
+  suggestionText: {
+    color: colors.muted,
     fontSize: 14,
-    fontWeight: "800",
-    letterSpacing: 1,
-    textTransform: "uppercase"
+    fontWeight: "600"
   },
-  title: {
-    color: "#fff",
-    fontSize: 32,
+  planMenu: {
+    alignSelf: "center",
+    backgroundColor: "#9b9b9f",
+    borderRadius: 9,
+    marginTop: 10,
+    overflow: "hidden",
+    width: 190
+  },
+  planRow: {
+    alignItems: "center",
+    borderBottomColor: "rgba(0,0,0,0.16)",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    minHeight: 38,
+    paddingHorizontal: 16
+  },
+  planText: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: "700"
+  },
+  planIcon: {
+    color: colors.text,
+    fontSize: 20
+  },
+  statusCard: {
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
+    borderRadius: radii.card,
+    borderWidth: 1,
+    gap: 8,
+    padding: 16
+  },
+  statusTitle: {
+    color: colors.text,
+    fontSize: 13,
     fontWeight: "900"
   },
-  subtitle: {
-    color: "#c5ccdc",
-    fontSize: 16,
-    lineHeight: 24
+  statusText: {
+    color: colors.muted,
+    fontSize: 11
   },
-  card: {
-    backgroundColor: "#101827",
-    borderRadius: 22,
-    gap: 8,
-    padding: 18
-  },
-  cardTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "800"
-  },
-  cardText: {
-    color: "#9aa7bd",
-    lineHeight: 21
-  },
-  steps: {
-    gap: 12
-  },
-  step: {
-    alignItems: "center",
-    backgroundColor: "#0f1728",
-    borderRadius: 18,
-    flexDirection: "row",
-    gap: 12,
-    padding: 14
-  },
-  stepNumber: {
-    backgroundColor: "#21d4a2",
-    borderRadius: 999,
-    color: "#05070d",
-    fontWeight: "900",
-    overflow: "hidden",
-    paddingHorizontal: 10,
-    paddingVertical: 6
-  },
-  stepText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600"
-  }
 });

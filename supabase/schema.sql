@@ -1,8 +1,12 @@
+create extension if not exists pgcrypto;
+
 create table if not exists public.users (
   id uuid primary key,
   name text not null,
   email text not null unique,
   phone text,
+  address text,
+  agreement_accepted_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -12,7 +16,8 @@ create table if not exists public.products (
   price numeric(12, 2) not null,
   supplier text not null,
   delivery_days integer not null,
-  image_url text
+  image_url text,
+  category text
 );
 
 create table if not exists public.orders (
@@ -20,10 +25,14 @@ create table if not exists public.orders (
   user_id uuid references public.users(id) on delete cascade,
   product_name text not null,
   quantity integer not null check (quantity > 0),
-  price numeric(12, 2) not null,
+  price_per_unit numeric(12, 2) not null,
+  total_price numeric(12, 2) not null,
   supplier text not null,
-  address text not null,
+  delivery_address text not null,
+  city text not null,
+  country text not null,
   status text not null default 'pending',
+  tracking_number text not null,
   created_at timestamptz not null default now()
 );
 

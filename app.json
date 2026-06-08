@@ -6,22 +6,30 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "backgroundColor": "#05070d"
-    },
+    "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.travio.app",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Travio does not use the camera yet.",
+        "NSCameraUsageDescription": "Travio uses the camera for visual product search, barcode scanning, and QR product links.",
+        "NSMicrophoneUsageDescription": "Travio uses the microphone for voice product search.",
+        "NSPhotoLibraryUsageDescription": "Travio uses photo access for screenshot and image product search.",
         "NSLocationWhenInUseUsageDescription": "Travio may use location later to improve delivery estimates."
       }
     },
     "android": {
       "package": "com.travio.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#171466"
+      },
       "permissions": [
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "CAMERA",
+        "RECORD_AUDIO",
+        "READ_MEDIA_IMAGES"
       ]
     },
     "web": {
@@ -30,7 +38,17 @@
     },
     "plugins": [
       "expo-router",
+      "expo-font",
       "expo-localization",
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#171466",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 320
+        }
+      ],
       "expo-web-browser",
       [
         "@stripe/stripe-react-native",
@@ -39,6 +57,12 @@
           "enableGooglePay": true
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "284ec853-0156-4815-8741-c55ea8510724"
+      }
+    }
   }
 }
