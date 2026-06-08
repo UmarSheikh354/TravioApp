@@ -85,7 +85,6 @@ const styles = StyleSheet.create({
   },
   headerLogo: {
     height: 28,
-    tintColor: colors.text,
     width: 28
   },
   headerIcon: {

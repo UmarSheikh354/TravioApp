@@ -1,9 +1,9 @@
 import { router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-import { Animated, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text } from "react-native";
 import { TravioMark } from "@/components/TravioMark";
 import { useApp } from "@/context/AppContext";
-import { colors } from "@/lib/theme";
 
 export default function SplashScreen() {
   const { user, loading } = useApp();
@@ -38,29 +38,28 @@ export default function SplashScreen() {
   }, [loading, user]);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={["#01020A", "#171466", "#3937D9"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={styles.container}>
       <Animated.View style={{ opacity: logoOpacity, transform: [{ scale: logoScale }] }}>
-        <TravioMark size={80} />
-        <Text style={styles.logoText}>TRAVIO</Text>
+        <TravioMark size={330} />
       </Animated.View>
-    </View>
+      <Text style={styles.arrow}>↗</Text>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    backgroundColor: colors.background,
     flex: 1,
     justifyContent: "center",
     padding: 24
   },
-  logoText: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: "700",
-    letterSpacing: 4,
-    marginTop: 18,
-    textAlign: "center"
+  arrow: {
+    bottom: 22,
+    color: "#000",
+    fontSize: 30,
+    position: "absolute",
+    right: 28,
+    transform: [{ rotate: "-35deg" }]
   }
 });
