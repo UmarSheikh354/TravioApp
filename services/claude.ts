@@ -1,106 +1,75 @@
-import { env, isConfigured, missingConfigMessage } from "@/lib/env";
-import type { ProductOption } from "@/types/travio";
+import { env, isConfigured } from "@/lib/env";
+import type { ChatMessage } from "@/types/travio";
 
 export const CLAUDE_MODEL = "claude-sonnet-4-20250514";
 
-export const TRAVIO_SYSTEM_PROMPT =
-  'You are Travio AI. When user describes a product, search and return exactly 3 options from Alibaba, Amazon and Temu in JSON format: {products: [{name, price_per_unit, total_price, delivery_days, supplier, description}]}';
+export const TRAVIO_SYSTEM_PROMPT = [
+  "You are Travio, a smart AI shopping companion.",
+  "You help users find products, compare prices and make better shopping decisions.",
+  "You respond naturally and conversationally like a knowledgeable friend.",
+  "You NEVER say 'I am searching on Amazon' or 'I am looking on Alibaba'.",
+  "You just naturally recommend products with prices and where to buy.",
+  "You are helpful, concise and smart.",
+].join(" ");
 
-type ClaudeContentBlock = {
+interface ClaudeContentBlock {
   type: string;
   text?: string;
-};
-
-function extractJsonObject(text: string) {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1];
-  const candidate = fenced ?? text;
-  const start = candidate.indexOf("{");
-  const end = candidate.lastIndexOf("}");
-
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error("Claude did not return a JSON object.");
-  }
-
-  return candidate.slice(start, end + 1);
 }
 
-function normalizeProducts(products: unknown): ProductOption[] {
-  if (!Array.isArray(products)) {
-    throw new Error("Claude JSON did not contain a products array.");
-  }
-
-  return products.slice(0, 3).map((product, index) => {
-    const item = product as Partial<ProductOption>;
-    const supplier = item.supplier === "Amazon" || item.supplier === "Temu" ? item.supplier : "Alibaba";
-    const pricePerUnit = Number(item.price_per_unit) || Number(item.total_price) || 0;
-
-    return {
-      id: `${supplier}-${index}-${Date.now()}`,
-      name: String(item.name ?? `${supplier} product option`),
-      price_per_unit: pricePerUnit,
-      total_price: Number(item.total_price) || pricePerUnit,
-      delivery_days: Number(item.delivery_days) || 14,
-      supplier,
-      description: String(item.description ?? `Recommended by Travio AI from ${supplier}.`),
-      image_url: item.image_url,
-      availability: item.availability ?? "Available"
-    };
-  });
+function toClaudeMessages(history: ChatMessage[]) {
+  return history
+    .filter((message) => message.content.trim().length > 0)
+    .map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
 }
 
-export async function askClaudeForProducts(query: string, marketplaceContext: ProductOption[]) {
+function demoReply(history: ChatMessage[]): string {
+  const last = history[history.length - 1]?.content ?? "";
+  if (!last) {
+    return "Hi! I'm Travio. Tell me what you're shopping for and I'll find the best options for you.";
+  }
+  return [
+    `Great choice exploring ${last.trim()}. Here's how I'd think about it:`,
+    "look for strong reviews, a fair price, and fast shipping.",
+    "Tell me your budget and I'll narrow it down to the best picks for you.",
+  ].join(" ");
+}
+
+export async function askTravio(history: ChatMessage[]): Promise<string> {
   if (!isConfigured(env.claudeApiKey)) {
-    throw new Error(missingConfigMessage("Claude API"));
+    return demoReply(history);
   }
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-api-key": env.claudeApiKey!,
+      "x-api-key": env.claudeApiKey,
       "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true"
+      "anthropic-dangerous-direct-browser-access": "true",
     },
     body: JSON.stringify({
       model: CLAUDE_MODEL,
-      max_tokens: 1200,
-      temperature: 0.2,
+      max_tokens: 1024,
+      temperature: 0.7,
       system: TRAVIO_SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
-            `User request: ${query}`,
-            "Marketplace API context:",
-            JSON.stringify({ products: marketplaceContext }, null, 2),
-            "Return only the JSON object with exactly 3 products."
-          ].join("\n\n")
-        }
-      ]
-    })
+      messages: toClaudeMessages(history),
+    }),
   });
 
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`Claude API failed with ${response.status}: ${message}`);
+    return demoReply(history);
   }
 
-  const json = await response.json();
-  const text = (json.content as ClaudeContentBlock[] | undefined)
-    ?.filter((block) => block.type === "text" && block.text)
+  const json = (await response.json()) as { content?: ClaudeContentBlock[] };
+  const text = (json.content ?? [])
+    .filter((block) => block.type === "text" && block.text)
     .map((block) => block.text)
-    .join("\n");
+    .join("\n")
+    .trim();
 
-  if (!text) {
-    throw new Error("Claude returned an empty response.");
-  }
-
-  const parsed = JSON.parse(extractJsonObject(text));
-  const products = normalizeProducts(parsed.products);
-
-  if (products.length !== 3) {
-    throw new Error("Claude did not return exactly 3 products.");
-  }
-
-  return products;
+  return text || demoReply(history);
 }

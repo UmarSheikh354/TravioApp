@@ -1,119 +1,192 @@
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/PrimaryButton";
-import { Screen } from "@/components/Screen";
+import { useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PressableScale } from "@/components/PressableScale";
+import { SettingsSheet } from "@/components/SettingsSheet";
 import { useApp } from "@/context/AppContext";
-import type { SupportedLanguage } from "@/types/travio";
-
-const languages: { label: string; value: SupportedLanguage }[] = [
-  { label: "English", value: "en" },
-  { label: "Urdu", value: "ur" },
-  { label: "Arabic", value: "ar" }
-];
+import { colors, radius, spacing } from "@/lib/theme";
 
 export default function ProfileScreen() {
-  const { t } = useTranslation();
-  const { user, language, setLanguage, logout } = useApp();
+  const insets = useSafeAreaInsets();
+  const { user, savedProducts, signOut } = useApp();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  async function handleLogout() {
-    try {
-      await logout();
-      router.replace("/login");
-    } catch (error) {
-      Alert.alert(t("profile"), error instanceof Error ? error.message : "Logout failed.");
-    }
+  async function handleSignOut() {
+    await signOut();
+    router.replace("/onboarding");
   }
 
   return (
-    <Screen>
-      <Text style={styles.title}>{t("profile")}</Text>
-      <View style={styles.card}>
-        <Text style={styles.name}>{user?.name ?? "Guest"}</Text>
-        <Text style={styles.email}>{user?.email ?? "guest@travio.local"}</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>{t("language")}</Text>
-        <View style={styles.languageRow}>
-          {languages.map((item) => (
-            <Pressable
-              key={item.value}
-              onPress={() => setLanguage(item.value)}
-              style={[styles.languagePill, language === item.value && styles.activeLanguage]}
-            >
-              <Text style={[styles.languageText, language === item.value && styles.activeLanguageText]}>
-                {item.label}
-              </Text>
-            </Pressable>
-          ))}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.xl },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.profileCard}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {(user?.full_name ?? user?.email ?? "T").charAt(0).toUpperCase()}
+          </Text>
+        </View>
+        <Text style={styles.name}>{user?.full_name ?? "Travio User"}</Text>
+        <Text style={styles.email}>{user?.email ?? "Not signed in"}</Text>
+        <View style={styles.tierBadge}>
+          <Feather name="star" size={12} color={colors.accent} />
+          <Text style={styles.tierText}>{user?.subscription_tier ?? "Free"} plan</Text>
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Backend status</Text>
-        <Text style={styles.statusText}>
-          Add real values to .env to enable Claude, marketplace APIs, Stripe PaymentIntent, and Supabase database writes.
-        </Text>
+      <View style={styles.statsRow}>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{savedProducts.length}</Text>
+          <Text style={styles.statLabel}>Saved products</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>4</Text>
+          <Text style={styles.statLabel}>Marketplaces</Text>
+        </View>
       </View>
 
-      <PrimaryButton title={t("logout")} variant="secondary" onPress={handleLogout} />
-    </Screen>
+      <View style={styles.menu}>
+        <PressableScale style={styles.menuRow} onPress={() => router.push("/(tabs)/wishlist")}>
+          <Feather name="heart" size={18} color={colors.textPrimary} />
+          <Text style={styles.menuLabel}>Saved Products</Text>
+          <Feather name="chevron-right" size={18} color={colors.iconMuted} />
+        </PressableScale>
+        <PressableScale style={styles.menuRow} onPress={() => setSettingsOpen(true)}>
+          <Feather name="settings" size={18} color={colors.textPrimary} />
+          <Text style={styles.menuLabel}>Settings</Text>
+          <Feather name="chevron-right" size={18} color={colors.iconMuted} />
+        </PressableScale>
+      </View>
+
+      <PressableScale style={styles.logout} onPress={handleSignOut}>
+        <Feather name="log-out" size={18} color={colors.danger} />
+        <Text style={styles.logoutText}>Logout</Text>
+      </PressableScale>
+
+      <SettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    color: "#fff",
-    fontSize: 30,
-    fontWeight: "900"
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
-  card: {
-    backgroundColor: "#0f1728",
-    borderColor: "#24304a",
-    borderRadius: 22,
+  content: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.lg,
+  },
+  profileCard: {
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.xl,
     borderWidth: 1,
-    gap: 10,
-    padding: 16
+    borderColor: colors.border,
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.accent,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: {
+    color: colors.white,
+    fontSize: 28,
+    fontWeight: "700",
   },
   name: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "900"
+    fontSize: 20,
+    fontWeight: "700",
+    color: colors.textPrimary,
   },
   email: {
-    color: "#9aa7bd"
+    fontSize: 14,
+    color: colors.textSecondary,
   },
-  sectionTitle: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "800"
-  },
-  languageRow: {
+  tierBadge: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10
+    alignItems: "center",
+    gap: spacing.xs,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    marginTop: spacing.xs,
   },
-  languagePill: {
-    borderColor: "#2c3448",
-    borderRadius: 999,
+  tierText: {
+    fontSize: 12,
+    color: colors.textPrimary,
+    fontWeight: "600",
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10
+    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    alignItems: "center",
+    gap: spacing.xs,
   },
-  activeLanguage: {
-    backgroundColor: "#21d4a2",
-    borderColor: "#21d4a2"
+  statValue: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: colors.textPrimary,
   },
-  languageText: {
-    color: "#d7deee",
-    fontWeight: "700"
+  statLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
   },
-  activeLanguageText: {
-    color: "#05070d"
+  menu: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
   },
-  statusText: {
-    color: "#c5ccdc",
-    lineHeight: 22
-  }
+  menuRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  menuLabel: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.textPrimary,
+  },
+  logout: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+  },
+  logoutText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: colors.danger,
+  },
 });

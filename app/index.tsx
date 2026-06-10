@@ -1,52 +1,57 @@
 import { router } from "expo-router";
 import { useEffect } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
+import { StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
+import { Logo } from "@/components/Logo";
 import { useApp } from "@/context/AppContext";
+import { colors } from "@/lib/theme";
 
 export default function SplashScreen() {
-  const { t } = useTranslation();
-  const { user, loading } = useApp();
+  const { user, initializing } = useApp();
 
   useEffect(() => {
-    if (loading) {
-      return;
-    }
-
-    const timeout = setTimeout(() => {
+    const timer = setTimeout(() => {
+      if (initializing) {
+        return;
+      }
       router.replace(user ? "/(tabs)" : "/onboarding");
-    }, 900);
-
-    return () => clearTimeout(timeout);
-  }, [loading, user]);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [user, initializing]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>{t("appName")}</Text>
-      <Text style={styles.tagline}>{t("splashTagline")}</Text>
-      <ActivityIndicator color="#21d4a2" size="large" />
+      <View style={styles.glow} />
+      <Animated.View entering={FadeIn.duration(600)} style={styles.content}>
+        <Logo size={80} />
+        <Text style={styles.title}>TRAVIO</Text>
+      </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: "center",
-    backgroundColor: "#05070d",
     flex: 1,
-    gap: 16,
+    backgroundColor: colors.dark,
+    alignItems: "center",
     justifyContent: "center",
-    padding: 24
   },
-  logo: {
-    color: "#fff",
-    fontSize: 42,
-    fontWeight: "900",
-    letterSpacing: 1
+  glow: {
+    position: "absolute",
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
-  tagline: {
-    color: "#9aa7bd",
-    fontSize: 16,
-    marginBottom: 20
-  }
+  content: {
+    alignItems: "center",
+    gap: 16,
+  },
+  title: {
+    color: colors.white,
+    fontSize: 32,
+    fontWeight: "700",
+    letterSpacing: 4,
+  },
 });

@@ -1,254 +1,296 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppleAuthentication from "expo-apple-authentication";
-import * as WebBrowser from "expo-web-browser";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
-import { Alert } from "react-native";
-import { useTranslation } from "react-i18next";
 import {
-  clearLocalUser,
-  getLocalUser,
-  getOrders,
-  isSupabaseConfigured,
-  makeLocalUser,
-  saveOrder,
-  storeLocalUser,
-  supabase,
-  upsertUserProfile
-} from "@/lib/supabase";
-import { registerForPushNotifications } from "@/services/notifications";
-import type { OrderDraft, ProductOption, SupportedLanguage, TravioOrder, TravioUser } from "@/types/travio";
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { Platform as RNPlatform } from "react-native";
+import { listSavedProducts, removeProduct, saveProduct } from "@/lib/db";
+import { supabase } from "@/lib/supabase";
+import type { Platform, Product, TravioUser, UserPreferences } from "@/types/travio";
 
-WebBrowser.maybeCompleteAuthSession();
+const PREFS_KEY = "travio.preferences";
+const LOCAL_USER_KEY = "travio.localUser";
 
-type AppContextValue = {
-  user: TravioUser | null;
-  loading: boolean;
-  selectedProduct: ProductOption | null;
-  orderDraft: OrderDraft | null;
-  latestOrder: TravioOrder | null;
-  orders: TravioOrder[];
-  language: SupportedLanguage;
-  signInWithEmail: (email: string) => Promise<void>;
-  verifyEmail: (email: string, token: string) => Promise<void>;
-  signInWithApple: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  logout: () => Promise<void>;
-  selectProduct: (product: ProductOption) => void;
-  setDraft: (draft: OrderDraft) => void;
-  completeOrder: (draft: OrderDraft) => Promise<TravioOrder>;
-  refreshOrders: () => Promise<void>;
-  setLanguage: (language: SupportedLanguage) => Promise<void>;
+export const DEFAULT_PREFERENCES: UserPreferences = {
+  colorScheme: "system",
+  hapticFeedback: true,
+  voice: "Breeze",
+  language: "Auto-Detect",
+  marketplaces: { Amazon: true, AliExpress: true, Temu: true, Alibaba: true },
+  customInstructions: "",
 };
 
-const LANGUAGE_KEY = "travio.language";
+interface AppContextValue {
+  user: TravioUser | null;
+  initializing: boolean;
+  preferences: UserPreferences;
+  savedProducts: Product[];
+  isProductSaved: (productId: string) => boolean;
+  updatePreferences: (next: Partial<UserPreferences>) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, fullName: string) => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signInWithApple: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
+  toggleSavedProduct: (product: Product) => Promise<void>;
+  refreshSavedProducts: () => Promise<void>;
+}
+
 const AppContext = createContext<AppContextValue | undefined>(undefined);
 
-export function AppProvider({ children }: PropsWithChildren) {
-  const { i18n } = useTranslation();
-  const [user, setUser] = useState<TravioUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState<ProductOption | null>(null);
-  const [orderDraft, setOrderDraft] = useState<OrderDraft | null>(null);
-  const [latestOrder, setLatestOrder] = useState<TravioOrder | null>(null);
-  const [orders, setOrders] = useState<TravioOrder[]>([]);
-  const [language, setLanguageState] = useState<SupportedLanguage>("en");
+function makeLocalUser(email: string, fullName: string | null): TravioUser {
+  return {
+    id: `local-${email.toLowerCase()}`,
+    email,
+    full_name: fullName,
+    avatar_url: null,
+    subscription_tier: "Free",
+    preferences: null,
+    created_at: new Date().toISOString(),
+  };
+}
 
-  const refreshOrders = useCallback(async () => {
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<TravioUser | null>(null);
+  const [initializing, setInitializing] = useState(true);
+  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
+  const [savedProducts, setSavedProducts] = useState<Product[]>([]);
+
+  const loadPreferences = useCallback(async () => {
+    const raw = await AsyncStorage.getItem(PREFS_KEY);
+    if (raw) {
+      setPreferences({ ...DEFAULT_PREFERENCES, ...(JSON.parse(raw) as UserPreferences) });
+    }
+  }, []);
+
+  const refreshSavedProducts = useCallback(async () => {
     if (!user) {
-      setOrders([]);
+      setSavedProducts([]);
       return;
     }
-
-    const userOrders = await getOrders(user.id);
-    setOrders(userOrders);
+    const products = await listSavedProducts(user.id);
+    setSavedProducts(products);
   }, [user]);
 
   useEffect(() => {
+    let active = true;
     async function bootstrap() {
-      try {
-        const storedLanguage = (await AsyncStorage.getItem(LANGUAGE_KEY)) as SupportedLanguage | null;
-        if (storedLanguage && ["en", "ur", "ar"].includes(storedLanguage)) {
-          setLanguageState(storedLanguage);
-          await i18n.changeLanguage(storedLanguage);
+      await loadPreferences();
+      if (supabase) {
+        const { data } = await supabase.auth.getSession();
+        const sessionUser = data.session?.user;
+        if (active && sessionUser) {
+          setUser({
+            id: sessionUser.id,
+            email: sessionUser.email ?? "",
+            full_name: (sessionUser.user_metadata?.full_name as string) ?? null,
+            avatar_url: (sessionUser.user_metadata?.avatar_url as string) ?? null,
+            subscription_tier: "Free",
+            preferences: null,
+            created_at: sessionUser.created_at ?? new Date().toISOString(),
+          });
         }
-
-        if (supabase) {
-          const { data } = await supabase.auth.getUser();
-          if (data.user?.email) {
-            const profile: TravioUser = {
-              id: data.user.id,
-              name: data.user.user_metadata?.name ?? data.user.email.split("@")[0],
-              email: data.user.email,
-              phone: data.user.phone ?? undefined,
-              created_at: data.user.created_at
-            };
-            setUser(profile);
-            await upsertUserProfile(profile);
-          }
-        } else {
-          setUser(await getLocalUser());
+      } else {
+        const raw = await AsyncStorage.getItem(LOCAL_USER_KEY);
+        if (active && raw) {
+          setUser(JSON.parse(raw) as TravioUser);
         }
-
-        await registerForPushNotifications();
-      } finally {
-        setLoading(false);
+      }
+      if (active) {
+        setInitializing(false);
       }
     }
-
     bootstrap();
-  }, [i18n]);
+    return () => {
+      active = false;
+    };
+  }, [loadPreferences]);
 
   useEffect(() => {
-    refreshOrders().catch((error) => Alert.alert("Orders", error.message));
-  }, [refreshOrders]);
+    refreshSavedProducts();
+  }, [refreshSavedProducts]);
 
-  async function signInWithEmail(email: string) {
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail) {
-      throw new Error("Email is required.");
+  const persistLocalUser = useCallback(async (next: TravioUser | null) => {
+    if (next) {
+      await AsyncStorage.setItem(LOCAL_USER_KEY, JSON.stringify(next));
+    } else {
+      await AsyncStorage.removeItem(LOCAL_USER_KEY);
     }
+  }, []);
 
-    if (!supabase) {
-      await storeLocalUser(makeLocalUser(normalizedEmail));
-      return;
-    }
+  const updatePreferences = useCallback(
+    async (next: Partial<UserPreferences>) => {
+      setPreferences((current) => {
+        const merged = { ...current, ...next };
+        AsyncStorage.setItem(PREFS_KEY, JSON.stringify(merged)).catch(() => {});
+        return merged;
+      });
+    },
+    [],
+  );
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email: normalizedEmail,
-      options: {
-        shouldCreateUser: true
+  const signUpWithEmail = useCallback(
+    async (email: string, password: string, fullName: string) => {
+      if (supabase) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } },
+        });
+        if (error) throw new Error(error.message);
+        const created = data.user;
+        if (created) {
+          await supabase.from("users").upsert({
+            id: created.id,
+            email,
+            full_name: fullName,
+            subscription_tier: "Free",
+            created_at: new Date().toISOString(),
+          });
+        }
+        return;
       }
-    });
+      const local = makeLocalUser(email, fullName);
+      await persistLocalUser(local);
+      setUser(local);
+    },
+    [persistLocalUser],
+  );
 
-    if (error) {
-      throw new Error(error.message);
-    }
-  }
-
-  async function verifyEmail(email: string, token: string) {
-    if (!supabase) {
-      const localUser = makeLocalUser(email);
-      await storeLocalUser(localUser);
-      setUser(localUser);
-      return;
-    }
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: "email"
-    });
-
-    if (error || !data.user?.email) {
-      throw new Error(error?.message ?? "Email verification failed.");
-    }
-
-    const profile: TravioUser = {
-      id: data.user.id,
-      name: data.user.email.split("@")[0],
-      email: data.user.email,
-      phone: data.user.phone ?? undefined,
-      created_at: data.user.created_at
-    };
-    await upsertUserProfile(profile);
-    setUser(profile);
-  }
-
-  async function signInWithApple() {
-    if (supabase && isSupabaseConfigured) {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "apple" });
-      if (error) {
-        throw new Error(error.message);
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      if (supabase) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw new Error(error.message);
+        const sessionUser = data.user;
+        if (sessionUser) {
+          setUser({
+            id: sessionUser.id,
+            email: sessionUser.email ?? email,
+            full_name: (sessionUser.user_metadata?.full_name as string) ?? null,
+            avatar_url: (sessionUser.user_metadata?.avatar_url as string) ?? null,
+            subscription_tier: "Free",
+            preferences: null,
+            created_at: sessionUser.created_at ?? new Date().toISOString(),
+          });
+        }
+        return;
       }
-      return;
-    }
+      const local = makeLocalUser(email, null);
+      await persistLocalUser(local);
+      setUser(local);
+    },
+    [persistLocalUser],
+  );
 
+  const signInWithApple = useCallback(async () => {
+    if (RNPlatform.OS !== "ios") {
+      throw new Error("Apple Sign-In is only available on iOS devices.");
+    }
     const credential = await AppleAuthentication.signInAsync({
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-        AppleAuthentication.AppleAuthenticationScope.EMAIL
-      ]
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
     });
-    const email = credential.email ?? "apple-user@travio.local";
-    const localUser = makeLocalUser(email, credential.fullName?.givenName ?? "Apple User");
-    await storeLocalUser(localUser);
-    setUser(localUser);
-  }
-
-  async function signInWithGoogle() {
-    if (supabase && isSupabaseConfigured) {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
-      if (error) {
-        throw new Error(error.message);
-      }
+    const fullName = credential.fullName?.givenName ?? "Travio User";
+    if (supabase && credential.identityToken) {
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: "apple",
+        token: credential.identityToken,
+      });
+      if (error) throw new Error(error.message);
       return;
     }
+    const local = makeLocalUser(credential.email ?? "apple-user@travio.app", fullName);
+    await persistLocalUser(local);
+    setUser(local);
+  }, [persistLocalUser]);
 
-    const localUser = makeLocalUser("google-user@travio.local", "Google User");
-    await storeLocalUser(localUser);
-    setUser(localUser);
-  }
+  const signInWithGoogle = useCallback(async () => {
+    throw new Error(
+      "Google Sign-In needs EXPO_PUBLIC_GOOGLE_CLIENT_ID configured in .env.",
+    );
+  }, []);
 
-  async function logout() {
+  const signOut = useCallback(async () => {
     if (supabase) {
       await supabase.auth.signOut();
     }
-    await clearLocalUser();
+    await persistLocalUser(null);
     setUser(null);
-    setOrders([]);
-  }
+    setSavedProducts([]);
+  }, [persistLocalUser]);
 
-  async function completeOrder(draft: OrderDraft) {
-    const activeUser = user ?? makeLocalUser("guest@travio.local", "Guest");
-    if (!user) {
-      await storeLocalUser(activeUser);
-      setUser(activeUser);
-    }
+  const toggleSavedProduct = useCallback(
+    async (product: Product) => {
+      if (!user) return;
+      const existing = savedProducts.find(
+        (item) => item.id === product.id || item.product_url === product.product_url,
+      );
+      if (existing) {
+        await removeProduct(existing.id);
+      } else {
+        await saveProduct(user.id, product);
+      }
+      await refreshSavedProducts();
+    },
+    [user, savedProducts, refreshSavedProducts],
+  );
 
-    const order = await saveOrder(activeUser.id, draft);
-    setLatestOrder(order);
-    setOrderDraft(null);
-    setSelectedProduct(null);
-    await refreshOrders();
-    return order;
-  }
-
-  async function changeLanguage(nextLanguage: SupportedLanguage) {
-    setLanguageState(nextLanguage);
-    await AsyncStorage.setItem(LANGUAGE_KEY, nextLanguage);
-    await i18n.changeLanguage(nextLanguage);
-  }
+  const isProductSaved = useCallback(
+    (productId: string) => savedProducts.some((item) => item.id === productId),
+    [savedProducts],
+  );
 
   const value = useMemo<AppContextValue>(
     () => ({
       user,
-      loading,
-      selectedProduct,
-      orderDraft,
-      latestOrder,
-      orders,
-      language,
+      initializing,
+      preferences,
+      savedProducts,
+      isProductSaved,
+      updatePreferences,
+      signUpWithEmail,
       signInWithEmail,
-      verifyEmail,
       signInWithApple,
       signInWithGoogle,
-      logout,
-      selectProduct: setSelectedProduct,
-      setDraft: setOrderDraft,
-      completeOrder,
-      refreshOrders,
-      setLanguage: changeLanguage
+      signOut,
+      toggleSavedProduct,
+      refreshSavedProducts,
     }),
-    [user, loading, selectedProduct, orderDraft, latestOrder, orders, language, refreshOrders]
+    [
+      user,
+      initializing,
+      preferences,
+      savedProducts,
+      isProductSaved,
+      updatePreferences,
+      signUpWithEmail,
+      signInWithEmail,
+      signInWithApple,
+      signInWithGoogle,
+      signOut,
+      toggleSavedProduct,
+      refreshSavedProducts,
+    ],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
-export function useApp() {
+export function useApp(): AppContextValue {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error("useApp must be used within AppProvider");
+    throw new Error("useApp must be used within an AppProvider");
   }
   return context;
 }
+
+export type { Platform };

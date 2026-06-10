@@ -1,80 +1,191 @@
-import { Image, StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/PrimaryButton";
-import type { ProductOption } from "@/types/travio";
+import { Feather } from "@expo/vector-icons";
+import { Image, Linking, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import { PressableScale } from "@/components/PressableScale";
+import { colors, platformColors, radius, spacing } from "@/lib/theme";
+import type { Product } from "@/types/travio";
 
-type Props = {
-  product: ProductOption;
-  onConfirm?: (product: ProductOption) => void;
-};
+interface ProductCardProps {
+  product: Product;
+  index?: number;
+  saved?: boolean;
+  grid?: boolean;
+  onToggleSave?: (product: Product) => void;
+}
 
-export function ProductCard({ product, onConfirm }: Props) {
-  const { t } = useTranslation();
+function Stars({ rating }: { rating: number | null }) {
+  if (!rating) {
+    return null;
+  }
+  return (
+    <View style={styles.rating}>
+      <Feather name="star" size={12} color="#F5A623" />
+      <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+    </View>
+  );
+}
+
+export function ProductCard({
+  product,
+  index = 0,
+  saved = false,
+  grid = false,
+  onToggleSave,
+}: ProductCardProps) {
+  function openDeal() {
+    if (product.product_url) {
+      Linking.openURL(product.product_url).catch(() => {});
+    }
+  }
 
   return (
-    <View style={styles.card}>
-      {product.image_url ? <Image source={{ uri: product.image_url }} style={styles.image} /> : null}
-      <View style={styles.header}>
-        <Text style={styles.name}>{product.name}</Text>
-        <Text style={styles.price}>${product.total_price.toFixed(2)}</Text>
+    <Animated.View
+      entering={FadeInDown.delay(index * 100).duration(300)}
+      style={[styles.card, grid && styles.gridCard]}
+    >
+      <View style={styles.imageWrapper}>
+        {product.image_url ? (
+          <Image source={{ uri: product.image_url }} style={styles.image} />
+        ) : (
+          <View style={[styles.image, styles.imagePlaceholder]}>
+            <Feather name="image" size={28} color={colors.iconMuted} />
+          </View>
+        )}
+        <PressableScale
+          style={styles.saveButton}
+          onPress={() => onToggleSave?.(product)}
+          accessibilityLabel={saved ? "Remove from wishlist" : "Save to wishlist"}
+        >
+          <Feather
+            name="heart"
+            size={16}
+            color={saved ? colors.danger : colors.textPrimary}
+          />
+        </PressableScale>
+        <View
+          style={[
+            styles.badge,
+            { backgroundColor: platformColors[product.platform] },
+          ]}
+        >
+          <Text style={styles.badgeText}>{product.platform}</Text>
+        </View>
       </View>
-      <Text style={styles.description}>{product.description}</Text>
-      <View style={styles.metaRow}>
-        <Text style={styles.meta}>
-          {t("supplier")}: {product.supplier}
+
+      <View style={styles.body}>
+        <Text style={styles.title} numberOfLines={2}>
+          {product.title}
         </Text>
-        <Text style={styles.meta}>
-          {t("delivery")}: {product.delivery_days} {t("days")}
-        </Text>
+        <View style={styles.metaRow}>
+          <Text style={styles.price}>
+            ${product.price.toFixed(2)}
+          </Text>
+          <Stars rating={product.rating} />
+        </View>
+        <PressableScale style={styles.dealButton} onPress={openDeal}>
+          <Text style={styles.dealText}>View Deal</Text>
+          <Feather name="external-link" size={14} color={colors.white} />
+        </PressableScale>
       </View>
-      <Text style={styles.meta}>Unit: ${product.price_per_unit.toFixed(2)}</Text>
-      {onConfirm ? <PrimaryButton title={t("confirmOrder")} onPress={() => onConfirm(product)} /> : null}
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#0f1728",
-    borderColor: "#24304a",
-    borderRadius: 22,
+    width: 200,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    gap: 12,
-    padding: 16
+    borderColor: colors.border,
+    overflow: "hidden",
+    marginRight: spacing.md,
+  },
+  gridCard: {
+    width: "100%",
+    marginRight: 0,
+    marginBottom: spacing.md,
+  },
+  imageWrapper: {
+    width: "100%",
+    height: 140,
+    position: "relative",
   },
   image: {
-    backgroundColor: "#1d2638",
+    width: "100%",
+    height: 140,
+    resizeMode: "cover",
+  },
+  imagePlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+  },
+  saveButton: {
+    position: "absolute",
+    top: spacing.sm,
+    right: spacing.sm,
+    width: 32,
+    height: 32,
     borderRadius: 16,
-    height: 150,
-    width: "100%"
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  header: {
-    flexDirection: "row",
-    gap: 12,
-    justifyContent: "space-between"
+  badge: {
+    position: "absolute",
+    bottom: spacing.sm,
+    left: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
   },
-  name: {
-    color: "#fff",
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "800"
+  badgeText: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: "700",
   },
-  price: {
-    color: "#21d4a2",
-    fontSize: 18,
-    fontWeight: "800"
+  body: {
+    padding: spacing.md,
+    gap: spacing.sm,
   },
-  description: {
-    color: "#c5ccdc",
-    lineHeight: 20
+  title: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    fontWeight: "500",
+    minHeight: 36,
   },
   metaRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  meta: {
-    color: "#9aa7bd",
-    fontSize: 13
-  }
+  price: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.accent,
+  },
+  rating: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  dealButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.textPrimary,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+  },
+  dealText: {
+    color: colors.white,
+    fontSize: 13,
+    fontWeight: "600",
+  },
 });
