@@ -1,64 +1,58 @@
-export type SupportedLanguage = "en" | "ur" | "ar";
+export type Platform = "Amazon" | "AliExpress" | "Temu" | "Alibaba";
 
-export type Supplier = "Alibaba" | "Amazon" | "Temu";
+export type MessageRole = "user" | "assistant";
 
-export type ProductOption = {
-  id?: string;
-  name: string;
-  price_per_unit: number;
-  total_price: number;
-  delivery_days: number;
-  supplier: Supplier;
-  description: string;
-  image_url?: string;
-  availability?: string;
-};
+export type Feedback = "up" | "down" | null;
 
-export type ChatMessage = {
+export interface TravioUser {
   id: string;
-  role: "user" | "assistant" | "system";
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  subscription_tier: string | null;
+  preferences: UserPreferences | null;
+  created_at: string;
+}
+
+export interface UserPreferences {
+  colorScheme?: "system" | "light" | "dark";
+  hapticFeedback?: boolean;
+  voice?: string;
+  language?: string;
+  marketplaces?: Record<Platform, boolean>;
+  customInstructions?: string;
+}
+
+export interface Product {
+  id: string;
+  user_id?: string | null;
+  title: string;
+  price: number;
+  currency: string;
+  image_url: string | null;
+  product_url: string | null;
+  platform: Platform;
+  rating: number | null;
+  saved_at?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  chat_id?: string;
+  user_id?: string | null;
+  role: MessageRole;
   content: string;
-  products?: ProductOption[];
-  createdAt: string;
-};
+  products?: Product[];
+  feedback?: Feedback;
+  created_at: string;
+  streaming?: boolean;
+}
 
-export type OrderStatus = "pending" | "paid" | "processing" | "shipped" | "delivered" | "cancelled";
-
-export type CustomerDetails = {
-  name: string;
-  phone: string;
-  address: string;
-  city: string;
-  country: string;
-};
-
-export type OrderDraft = CustomerDetails & {
-  product: ProductOption;
-  quantity: number;
-};
-
-export type TravioOrder = {
+export interface Chat {
   id: string;
   user_id: string;
-  product_name: string;
-  quantity: number;
-  price: number;
-  supplier: Supplier;
-  address: string;
-  status: OrderStatus;
+  title: string;
   created_at: string;
-  tracking_number: string;
-};
-
-export type TravioUser = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  created_at: string;
-};
-
-export type ApiResult<T> = {
-  data?: T;
-  error?: string;
-};
+  updated_at: string;
+  is_archived: boolean;
+}

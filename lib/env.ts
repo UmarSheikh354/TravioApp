@@ -1,31 +1,26 @@
-const PLACEHOLDER_MARKERS = ["your-", "example.com", "temu-api-host-from-rapidapi"];
+const PLACEHOLDER_MARKERS = ["your-", "example.com", "placeholder", "changeme"];
 
 export const env = {
   supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
   supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-  claudeApiKey: process.env.EXPO_PUBLIC_CLAUDE_API_KEY,
-  aliexpressAppKey: process.env.EXPO_PUBLIC_ALIEXPRESS_APP_KEY,
-  aliexpressAppSecret: process.env.EXPO_PUBLIC_ALIEXPRESS_APP_SECRET,
-  aliexpressTrackingId: process.env.EXPO_PUBLIC_ALIEXPRESS_TRACKING_ID,
-  amazonAccessKey: process.env.EXPO_PUBLIC_AMAZON_ACCESS_KEY,
-  amazonSecretKey: process.env.EXPO_PUBLIC_AMAZON_SECRET_KEY,
-  amazonAssociateTag: process.env.EXPO_PUBLIC_AMAZON_ASSOCIATE_TAG,
-  amazonRegion: process.env.EXPO_PUBLIC_AMAZON_REGION ?? "us-east-1",
-  temuRapidApiKey: process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
-  temuRapidApiHost: process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_HOST,
-  stripePublishableKey: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-  stripeMerchantId: process.env.EXPO_PUBLIC_STRIPE_MERCHANT_ID,
-  paymentIntentEndpoint: process.env.EXPO_PUBLIC_PAYMENT_INTENT_ENDPOINT
-};
+  // Anthropic Claude key. Supports the spec name and the existing project name.
+  claudeApiKey:
+    process.env.ANTHROPIC_API_KEY ?? process.env.EXPO_PUBLIC_CLAUDE_API_KEY,
+  // RapidAPI Real-Time Product Search. Falls back to the legacy Temu key/host.
+  rapidApiKey:
+    process.env.EXPO_PUBLIC_RAPIDAPI_KEY ??
+    process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_KEY,
+  rapidApiHost:
+    process.env.EXPO_PUBLIC_RAPIDAPI_HOST ??
+    process.env.EXPO_PUBLIC_TEMU_RAPIDAPI_HOST ??
+    "real-time-product-search.p.rapidapi.com",
+  googleClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+} as const;
 
-export function isConfigured(value?: string) {
+export function isConfigured(value?: string | null): value is string {
   if (!value) {
     return false;
   }
 
   return !PLACEHOLDER_MARKERS.some((marker) => value.includes(marker));
-}
-
-export function missingConfigMessage(name: string) {
-  return `${name} is not configured. Add the real value to .env and restart Expo.`;
 }

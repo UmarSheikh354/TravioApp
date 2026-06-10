@@ -14,26 +14,35 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Logo } from "@/components/Logo";
 import { PressableScale } from "@/components/PressableScale";
 import { useApp } from "@/context/AppContext";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { colors, radius, spacing } from "@/lib/theme";
 
-export default function LoginScreen() {
+export default function SignupScreen() {
   const insets = useSafeAreaInsets();
-  const { signInWithEmail } = useApp();
+  const { signUpWithEmail } = useApp();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function submit() {
-    if (!email.trim() || !password) {
-      Alert.alert("Missing details", "Enter your email and password.");
+    if (!fullName.trim() || !email.trim() || password.length < 6) {
+      Alert.alert(
+        "Check your details",
+        "Enter your name, email, and a password of at least 6 characters.",
+      );
       return;
     }
     setLoading(true);
     try {
-      await signInWithEmail(email.trim(), password);
-      router.replace("/(tabs)");
+      await signUpWithEmail(email.trim(), password, fullName.trim());
+      if (isSupabaseConfigured) {
+        router.replace({ pathname: "/email-verification", params: { email: email.trim() } });
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (error) {
-      Alert.alert("Login failed", (error as Error).message);
+      Alert.alert("Sign up failed", (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -55,11 +64,18 @@ export default function LoginScreen() {
 
         <View style={styles.header}>
           <Logo size={56} />
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Log in to continue shopping with Travio</Text>
+          <Text style={styles.title}>Create your account</Text>
+          <Text style={styles.subtitle}>Join Travio and shop smarter</Text>
         </View>
 
         <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="Full name"
+            placeholderTextColor={colors.iconMuted}
+          />
           <TextInput
             style={styles.input}
             value={email}
@@ -77,18 +93,16 @@ export default function LoginScreen() {
             placeholderTextColor={colors.iconMuted}
             secureTextEntry
           />
-          <PressableScale
-            style={styles.primary}
-            onPress={submit}
-            disabled={loading}
-          >
-            <Text style={styles.primaryText}>{loading ? "Logging in..." : "Log in"}</Text>
+          <PressableScale style={styles.primary} onPress={submit} disabled={loading}>
+            <Text style={styles.primaryText}>
+              {loading ? "Creating account..." : "Sign up"}
+            </Text>
           </PressableScale>
         </View>
 
-        <PressableScale style={styles.footerLink} onPress={() => router.replace("/signup")}>
+        <PressableScale style={styles.footerLink} onPress={() => router.replace("/login")}>
           <Text style={styles.footerText}>
-            Don&apos;t have an account? <Text style={styles.footerStrong}>Sign up</Text>
+            Already have an account? <Text style={styles.footerStrong}>Log in</Text>
           </Text>
         </PressableScale>
       </View>
